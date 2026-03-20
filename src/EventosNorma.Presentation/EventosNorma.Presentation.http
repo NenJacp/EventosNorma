@@ -1,0 +1,6 @@
+@EventosNorma.Presentation_HostAddress = http://localhost:5190
+
+GET {{EventosNorma.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
