@@ -2,6 +2,8 @@ services:
   db:
     image: postgres:15-alpine
     container_name: eventosnorma_db
+    env_file:
+      - ./backend/.env
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
@@ -13,11 +15,13 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: eventosnorma_backend
     ports:
       - "5000:80"
+    env_file:
+      - ./backend/.env
     environment:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
