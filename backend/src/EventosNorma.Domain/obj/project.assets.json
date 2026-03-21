@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Domain/EventosNorma.Domain.csproj",
+      "projectUniqueName": "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Domain/EventosNorma.Domain.csproj",
       "projectName": "EventosNorma.Domain",
-      "projectPath": "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Domain/EventosNorma.Domain.csproj",
+      "projectPath": "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Domain/EventosNorma.Domain.csproj",
       "packagesPath": "/home/damaya/.nuget/packages/",
-      "outputPath": "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Domain/obj/",
+      "outputPath": "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Domain/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/damaya/.nuget/NuGet/NuGet.Config"

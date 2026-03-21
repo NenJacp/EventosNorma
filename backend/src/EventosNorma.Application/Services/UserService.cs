@@ -28,8 +28,8 @@ public class UserService : IUserService
 
         var user = new User
         {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
             Email = request.Email,
             PasswordHash = _passwordHasher.Hash(request.Password)
         };
@@ -37,7 +37,7 @@ public class UserService : IUserService
         await _userRepository.AddAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
-        return new UserResponse(user.Id, user.Name, user.Email);
+        return new UserResponse(user.Id, user.FirstName, user.LastName, user.Email);
     }
 
     public async Task<UserResponse?> LoginAsync(UserLoginRequest request)
@@ -48,6 +48,22 @@ public class UserService : IUserService
             return null;
         }
 
-        return new UserResponse(user.Id, user.Name, user.Email);
+        return new UserResponse(user.Id, user.FirstName, user.LastName, user.Email);
+    }
+
+    public async Task<IEnumerable<UserResponse>> GetAllUsersAsync()
+    {
+        var users = await _userRepository.GetAllAsync();
+        return users.Select(u => new UserResponse(u.Id, u.FirstName, u.LastName, u.Email));
+    }
+
+    public async Task<bool> DeleteUserAsync(int id)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null) return false;
+
+        _userRepository.Delete(user);
+        await _unitOfWork.SaveChangesAsync();
+        return true;
     }
 }

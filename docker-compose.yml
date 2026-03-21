@@ -1,15 +1,15 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: eventosnorma_db
     env_file:
-      - ./backend/.env
+      - ./.env
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${EVENTOSNORMA_DB_NAME}
+      POSTGRES_USER: ${EVENTOSNORMA_DB_USER}
+      POSTGRES_PASSWORD: ${EVENTOSNORMA_DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -21,26 +21,27 @@ services:
     ports:
       - "5000:80"
     env_file:
-      - ./backend/.env
+      - ./.env
     environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - EVENTOSNORMA_DB_HOST=${EVENTOSNORMA_DB_HOST}
+      - EVENTOSNORMA_DB_PORT=${EVENTOSNORMA_DB_PORT}
+      - EVENTOSNORMA_DB_NAME=${EVENTOSNORMA_DB_NAME}
+      - EVENTOSNORMA_DB_USER=${EVENTOSNORMA_DB_USER}
+      - EVENTOSNORMA_DB_PASSWORD=${EVENTOSNORMA_DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
     depends_on:
       - db
 
-  # Placeholder for frontend
-  # frontend:
-  #   build: ./frontend
-  #   container_name: eventosnorma_frontend
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eventosnorma_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

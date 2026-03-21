@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9adJltFK7uM=",
+  "dgSpecHash": "Up0O2AmWfVI=",
   "success": true,
-  "projectFilePath": "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Application/EventosNorma.Application.csproj",
+  "projectFilePath": "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Application/EventosNorma.Application.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "j4Bgdh7Wwm8=",
+  "dgSpecHash": "lCEhhm46VJE=",
   "success": true,
-  "projectFilePath": "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Presentation/EventosNorma.Presentation.csproj",
+  "projectFilePath": "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Presentation/EventosNorma.Presentation.csproj",
   "expectedPackageFiles": [
     "/home/damaya/.nuget/packages/bcrypt.net-next/4.1.0/bcrypt.net-next.4.1.0.nupkg.sha512",
     "/home/damaya/.nuget/packages/dotnetenv/3.1.1/dotnetenv.3.1.1.nupkg.sha512",

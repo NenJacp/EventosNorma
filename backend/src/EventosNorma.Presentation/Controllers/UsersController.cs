@@ -40,4 +40,23 @@ public class UsersController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var users = await _userService.GetAllUsersAsync();
+        return Ok(users);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var result = await _userService.DeleteUserAsync(id);
+        if (!result)
+        {
+            return NotFound(new { message = "User not found" });
+        }
+
+        return NoContent();
+    }
 }

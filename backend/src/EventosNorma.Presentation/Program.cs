@@ -8,26 +8,33 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load .env file
-DotNetEnv.Env.Load();
+if (File.Exists(".env")) DotNetEnv.Env.Load(".env");
+else if (File.Exists("../.env")) DotNetEnv.Env.Load("../.env");
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Database Configuration
-var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-var dbPort = Environment.GetEnvironmentVariable("DB_PORT");
-var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-var dbUser = Environment.GetEnvironmentVariable("DB_USER");
-var dbPass = Environment.GetEnvironmentVariable("DB_PASSWORD");
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+var dbHost = Environment.GetEnvironmentVariable("EVENTOSNORMA_DB_HOST");
+var dbPort = Environment.GetEnvironmentVariable("EVENTOSNORMA_DB_PORT");
+var dbName = Environment.GetEnvironmentVariable("EVENTOSNORMA_DB_NAME");
+var dbUser = Environment.GetEnvironmentVariable("EVENTOSNORMA_DB_USER");
+var dbPass = Environment.GetEnvironmentVariable("EVENTOSNORMA_DB_PASSWORD");
 
 var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass}";
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -35,7 +42,6 @@ builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -43,15 +49,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
 
-// Apply migrations automatically (for development)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    // Wait for DB to be ready
-    int retries = 5;
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var db = services.GetRequiredService<AppDbContext>();
+
+    int retries = 10;
     while (retries > 0)
     {
         try
@@ -59,10 +67,11 @@ using (var scope = app.Services.CreateScope())
             db.Database.Migrate();
             break;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             retries--;
-            Thread.Sleep(2000);
+            if (retries == 0) throw;
+            Thread.Sleep(3000);
         }
     }
 }

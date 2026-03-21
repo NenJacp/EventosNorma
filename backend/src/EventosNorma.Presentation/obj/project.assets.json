@@ -7982,11 +7982,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Presentation/EventosNorma.Presentation.csproj",
+      "projectUniqueName": "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Presentation/EventosNorma.Presentation.csproj",
       "projectName": "EventosNorma.Presentation",
-      "projectPath": "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Presentation/EventosNorma.Presentation.csproj",
+      "projectPath": "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Presentation/EventosNorma.Presentation.csproj",
       "packagesPath": "/home/damaya/.nuget/packages/",
-      "outputPath": "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Presentation/obj/",
+      "outputPath": "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Presentation/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/damaya/.nuget/NuGet/NuGet.Config"
@@ -8002,8 +8002,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Infrastructure/EventosNorma.Infrastructure.csproj": {
-              "projectPath": "/home/damaya/Documentos/EventosNorma/src/EventosNorma.Infrastructure/EventosNorma.Infrastructure.csproj"
+            "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Infrastructure/EventosNorma.Infrastructure.csproj": {
+              "projectPath": "/home/damaya/Documentos/EventosNorma/backend/src/EventosNorma.Infrastructure/EventosNorma.Infrastructure.csproj"
             }
           }
         }

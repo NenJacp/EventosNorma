@@ -1,5 +1,5 @@
 namespace EventosNorma.Application.DTOs;
 
-public record UserRegisterRequest(string Name, string Email, string Password);
+public record UserRegisterRequest(string FirstName, string LastName, string Email, string Password);
 public record UserLoginRequest(string Email, string Password);
-public record UserResponse(Guid Id, string Name, string Email);
+public record UserResponse(int Id, string FirstName, string LastName, string Email);
