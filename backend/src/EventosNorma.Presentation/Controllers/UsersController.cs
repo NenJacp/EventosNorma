@@ -1,6 +1,8 @@
-using EventosNorma.Application.DTOs;
-using EventosNorma.Application.Interfaces;
+using EventosNorma.Application.Features.Users.Commands;
+using EventosNorma.Application.Features.Users.Queries;
+using EventosNorma.Application.Features.Users.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Wolverine;
 
 namespace EventosNorma.Presentation.Controllers;
 
@@ -8,31 +10,24 @@ namespace EventosNorma.Presentation.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IMessageBus _bus;
 
-    public UsersController(IUserService userService)
+    public UsersController(IMessageBus bus)
     {
-        _userService = userService;
+        _bus = bus;
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(UserRegisterRequest request)
+    public async Task<IActionResult> Register(RegisterUserCommand command)
     {
-        try
-        {
-            var response = await _userService.RegisterAsync(request);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var response = await _bus.InvokeAsync<UserViewModel>(command);
+        return Ok(response);
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(UserLoginRequest request)
+    public async Task<IActionResult> Login(LoginQuery query)
     {
-        var response = await _userService.LoginAsync(request);
+        var response = await _bus.InvokeAsync<UserViewModel?>(query);
         if (response == null)
         {
             return Unauthorized(new { message = "Invalid email or password" });
@@ -44,19 +39,14 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var users = await _userService.GetAllUsersAsync();
+        var users = await _bus.InvokeAsync<IEnumerable<UserViewModel>>(new GetAllUsersQuery());
         return Ok(users);
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete([FromRoute] DeleteUserCommand command)
     {
-        var result = await _userService.DeleteUserAsync(id);
-        if (!result)
-        {
-            return NotFound(new { message = "User not found" });
-        }
-
-        return NoContent();
+        await _bus.InvokeAsync(command);
+        return Ok(new { message = "User deactivated successfully" });
     }
 }

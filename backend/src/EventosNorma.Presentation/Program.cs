@@ -1,19 +1,38 @@
+using EventosNorma.Application.Features.Users.Commands;
 using EventosNorma.Application.Interfaces;
-using EventosNorma.Application.Services;
 using EventosNorma.Domain.Interfaces;
 using EventosNorma.Infrastructure.Persistence;
 using EventosNorma.Infrastructure.Repositories;
 using EventosNorma.Infrastructure.Security;
+using EventosNorma.Presentation.Middleware;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Wolverine;
+using Wolverine.FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurar FluentValidation global para español
+ValidatorOptions.Global.LanguageManager.Culture = new System.Globalization.CultureInfo("es");
 
 if (File.Exists(".env")) DotNetEnv.Env.Load(".env");
 else if (File.Exists("../.env")) DotNetEnv.Env.Load("../.env");
 
+// Wolverine configuration
+builder.Host.UseWolverine(options =>
+{
+    // Escanea explícitamente el proyecto Application para encontrar los Handlers
+    options.Discovery.IncludeAssembly(typeof(RegisterUserCommand).Assembly);
+    
+    // Activa la validación automática de FluentValidation
+    options.UseFluentValidation();
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
 
 builder.Services.AddCors(options =>
 {
@@ -37,10 +56,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -67,7 +87,7 @@ using (var scope = app.Services.CreateScope())
             db.Database.Migrate();
             break;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             retries--;
             if (retries == 0) throw;
