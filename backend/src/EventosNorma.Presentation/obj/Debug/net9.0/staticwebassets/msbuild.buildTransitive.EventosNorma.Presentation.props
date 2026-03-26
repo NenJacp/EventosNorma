@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../buildMultiTargeting/EventosNorma.Presentation.props" />
-</Project>
