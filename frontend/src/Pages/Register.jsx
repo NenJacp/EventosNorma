@@ -1,20 +1,21 @@
 // src/pages/Register.jsx
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import '../styles/registro.css'
+import { register } from '../services/api'
+import '../styles/register.css'
 
 const EYE_OPEN = (
   <>
-    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
-    <circle cx="12" cy="12" r="3"/>
+    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+    <circle cx="12" cy="12" r="3" />
   </>
 )
 
 const EYE_OFF = (
   <>
-    <line x1="1" y1="1" x2="23" y2="23"/>
-    <path d="M9.88 9.88a3 3 0 004.24 4.24M10.73 5.08A10.43 10.43 0 0112 5c7 0 11 7 11 7a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 01-4.24-4.24M1 1s4 5.56 4 11"/>
-    <path d="M17.94 17.94A10.07 10.07 0 0112 19c-7 0-11-7-11-7a18.5 18.5 0 015.06-5.94"/>
+    <line x1="1" y1="1" x2="23" y2="23" />
+    <path d="M9.88 9.88a3 3 0 004.24 4.24M10.73 5.08A10.43 10.43 0 0112 5c7 0 11 7 11 7a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 01-4.24-4.24M1 1s4 5.56 4 11" />
+    <path d="M17.94 17.94A10.07 10.07 0 0112 19c-7 0-11-7-11-7a18.5 18.5 0 015.06-5.94" />
   </>
 )
 
@@ -45,9 +46,11 @@ export default function Register() {
   const [form, setForm] = useState({
     nombre: '', apellido: '', email: '', pwd: '', pwd2: ''
   })
-  const [showPwd, setShowPwd]   = useState(false)
+  const [showPwd, setShowPwd] = useState(false)
   const [showPwd2, setShowPwd2] = useState(false)
-  const [terms, setTerms]       = useState(false)
+  const [terms, setTerms] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const strength = checkStrength(form.pwd)
 
@@ -60,10 +63,28 @@ export default function Register() {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  function handleSubmit() {
-    if (!terms) return alert('Acepta los términos para continuar.')
-    if (matchStatus !== 'ok') return alert('Las contraseñas no coinciden.')
-    navigate('/dashboard')
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError('')
+
+    if (!terms) {
+      setError('Acepta los términos para continuar.')
+      return
+    }
+    if (matchStatus !== 'ok') {
+      setError('Las contraseñas no coinciden.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      await register(form.nombre, form.apellido, form.email, form.pwd)
+      navigate('/login')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -74,6 +95,8 @@ export default function Register() {
         <p className="form-sub">
           Crea tu perfil, publica eventos y conecta con tu audiencia en toda LATAM.
         </p>
+
+        {error && <div className="error-message">{error}</div>}
 
         <div className="field-row">
           <div className="field">
@@ -110,11 +133,10 @@ export default function Register() {
             </button>
           </div>
 
-          {/* Barra de fortaleza */}
           {form.pwd && (
             <div className="str-wrap">
               <div className="str-bars">
-                {[1,2,3,4].map(i => (
+                {[1, 2, 3, 4].map(i => (
                   <div key={i} className={`str-b ${i <= strength ? 'on' : ''}`} />
                 ))}
               </div>
@@ -153,8 +175,8 @@ export default function Register() {
           </label>
         </div>
 
-        <button className="btn-main" onClick={handleSubmit}>
-          Crear cuenta →
+        <button className="btn-main" onClick={handleSubmit} disabled={loading}>
+          {loading ? 'Creando cuenta...' : 'Crear cuenta →'}
         </button>
 
         <div className="auth-link">

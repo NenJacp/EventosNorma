@@ -1,13 +1,18 @@
+using System.Text;
 using EventosNorma.Application.Features.Users.Commands;
-using EventosNorma.Application.Interfaces;
+using EventosNorma.Infrastructure.Features.Users.Commands;
 using EventosNorma.Domain.Interfaces;
 using EventosNorma.Infrastructure.Persistence;
-using EventosNorma.Infrastructure.Repositories;
 using EventosNorma.Infrastructure.Security;
 using EventosNorma.Presentation.Middleware;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Wolverine;
+using Wolverine.EntityFrameworkCore;
 using Wolverine.FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,19 +23,54 @@ ValidatorOptions.Global.LanguageManager.Culture = new System.Globalization.Cultu
 if (File.Exists(".env")) DotNetEnv.Env.Load(".env");
 else if (File.Exists("../.env")) DotNetEnv.Env.Load("../.env");
 
+// Re-sync configuration to include variables loaded from .env
+builder.Configuration.AddEnvironmentVariables();
+
 // Wolverine configuration
 builder.Host.UseWolverine(options =>
 {
-    // Escanea explícitamente el proyecto Application para encontrar los Handlers
-    options.Discovery.IncludeAssembly(typeof(RegisterUserCommand).Assembly);
+    // Escaneamos el proyecto de Infrastructure para encontrar los Handlers
+    options.Discovery.IncludeAssembly(typeof(RegisterUserHandler).Assembly);
     
     // Activa la validación automática de FluentValidation
     options.UseFluentValidation();
+
+    // Configura Wolverine para usar transacciones de EF Core automáticamente
+    options.UseEntityFrameworkCoreTransactions();
 });
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EventosNorma API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
+});
 
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
 
@@ -54,9 +94,41 @@ var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username=
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+// Authentication Configuration
+var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "super_secret_key_default_32_characters_long";
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "EventosNorma",
+            ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "EventosNormaClient",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                {
+                    context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 
 var app = builder.Build();
 
@@ -70,7 +142,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())

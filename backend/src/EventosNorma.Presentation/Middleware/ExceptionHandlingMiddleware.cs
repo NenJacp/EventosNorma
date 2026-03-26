@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EventosNorma.Presentation.Middleware;
 
@@ -8,11 +9,13 @@ public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly IWebHostEnvironment _env;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IWebHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -28,15 +31,21 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        var code = HttpStatusCode.InternalServerError; // 500
-        object errors = null;
+        var code = HttpStatusCode.InternalServerError;
+        var title = "Server Error";
+        var detail = _env.IsDevelopment() ? exception.Message : "Ocurrió un error inesperado en el servidor.";
+        var type = "https://tools.ietf.org/html/rfc7231#section-6.6.1";
+        IDictionary<string, string[]>? validationErrors = null;
 
         if (exception is ValidationException validationException)
         {
-            code = HttpStatusCode.BadRequest; // 400
-            errors = validationException.Errors
+            code = HttpStatusCode.BadRequest;
+            title = "Validation Error";
+            detail = "Uno o más errores de validación han ocurrido.";
+            type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
+            validationErrors = validationException.Errors
                 .GroupBy(e => e.PropertyName)
                 .ToDictionary(
                     g => g.Key,
@@ -45,24 +54,44 @@ public class ExceptionHandlingMiddleware
         }
         else if (exception is EventosNorma.Domain.Exceptions.DomainException)
         {
-            code = HttpStatusCode.BadRequest; // 400
-            errors = new { error = exception.Message };
+            code = HttpStatusCode.BadRequest;
+            title = "Domain Error";
+            detail = exception.Message;
+            type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
         }
         else if (exception is KeyNotFoundException)
         {
-            code = HttpStatusCode.NotFound; // 404
-            errors = new { error = exception.Message };
+            code = HttpStatusCode.NotFound;
+            title = "Not Found";
+            detail = exception.Message;
+            type = "https://tools.ietf.org/html/rfc7231#section-6.5.4";
         }
-        else
+        else if (exception is UnauthorizedAccessException)
         {
-            code = HttpStatusCode.InternalServerError; // 500
-            errors = new { error = "Ocurrió un error inesperado en el servidor." };
+            code = HttpStatusCode.Unauthorized;
+            title = "Unauthorized";
+            detail = exception.Message;
+            type = "https://tools.ietf.org/html/rfc7235#section-3.1";
         }
 
-        var result = JsonSerializer.Serialize(errors);
-        context.Response.ContentType = "application/json";
+        var problemDetails = new ProblemDetails
+        {
+            Status = (int)code,
+            Title = title,
+            Detail = detail,
+            Type = type,
+            Instance = context.Request.Path
+        };
+
+        if (validationErrors != null)
+        {
+            problemDetails.Extensions["errors"] = validationErrors;
+        }
+
+        var result = JsonSerializer.Serialize(problemDetails);
+        context.Response.ContentType = "application/problem+json";
         context.Response.StatusCode = (int)code;
 
-        return context.Response.WriteAsync(result);
+        await context.Response.WriteAsync(result);
     }
 }

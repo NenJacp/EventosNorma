@@ -1,4 +1,4 @@
-using EventosNorma.Application.Interfaces;
+using EventosNorma.Domain.Interfaces;
 using BCryptNet = BCrypt.Net.BCrypt;
 
 namespace EventosNorma.Infrastructure.Security;

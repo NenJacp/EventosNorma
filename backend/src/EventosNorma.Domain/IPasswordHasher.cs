@@ -1,4 +1,4 @@
-namespace EventosNorma.Application.Interfaces;
+namespace EventosNorma.Domain.Interfaces;
 
 public interface IPasswordHasher
 {

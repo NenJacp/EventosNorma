@@ -1,6 +1,7 @@
 using EventosNorma.Application.Features.Users.Commands;
 using EventosNorma.Application.Features.Users.Queries;
 using EventosNorma.Application.Features.Users.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wolverine;
 
@@ -27,15 +28,11 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginQuery query)
     {
-        var response = await _bus.InvokeAsync<UserViewModel?>(query);
-        if (response == null)
-        {
-            return Unauthorized(new { message = "Invalid email or password" });
-        }
-
+        var response = await _bus.InvokeAsync<LoginViewModel>(query);
         return Ok(response);
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -43,10 +40,11 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] DeleteUserCommand command)
     {
         await _bus.InvokeAsync(command);
-        return Ok(new { message = "User deactivated successfully" });
+        return Ok(new { message = "Usuario desactivado correctamente" });
     }
 }

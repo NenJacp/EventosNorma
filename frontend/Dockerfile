@@ -7,12 +7,20 @@ RUN npm run build
 
 FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-# Copia una configuración básica de Nginx para manejar rutas de React (SPA)
 RUN echo 'server { \
     listen 80; \
+    server_name _; \
+    root /usr/share/nginx/html; \
+    index index.html index.htm; \
+    location /api/ { \
+        proxy_pass http://backend:80; \
+        proxy_http_version 1.1; \
+        proxy_set_header Host $host; \
+        proxy_set_header X-Real-IP $remote_addr; \
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
+        proxy_set_header X-Forwarded-Proto $scheme; \
+    } \
     location / { \
-        root /usr/share/nginx/html; \
-        index index.html index.htm; \
         try_files $uri $uri/ /index.html; \
     } \
 }' > /etc/nginx/conf.d/default.conf

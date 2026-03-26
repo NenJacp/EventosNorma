@@ -1,6 +1,7 @@
 // src/pages/Login.jsx
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { login } from '../services/api'
 import '../styles/login.css'
 
 const EYE_OPEN = (
@@ -32,9 +33,22 @@ export default function Login() {
   const [email, setEmail]     = useState('')
   const [pwd, setPwd]         = useState('')
   const [showPwd, setShowPwd] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState('')
 
-  function handleSubmit() {
-    navigate('/dashboard')
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      await login(email, pwd)
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -43,6 +57,8 @@ export default function Login() {
         <div className="form-eyebrow">Acceso seguro</div>
         <h1 className="form-title">BIENVENIDO<br />DE VUELTA</h1>
         <p className="form-sub">Continúa donde lo dejaste. Tu comunidad te espera.</p>
+
+        {error && <div className="error-message">{error}</div>}
 
         <div className="field">
           <label>Correo electrónico</label>
@@ -69,8 +85,8 @@ export default function Login() {
           </div>
         </div>
 
-        <button className="btn-main" onClick={handleSubmit}>
-          Iniciar sesión →
+        <button className="btn-main" onClick={handleSubmit} disabled={loading}>
+          {loading ? 'Iniciando sesión...' : 'Iniciar sesión →'}
         </button>
 
         <div className="divider">o continúa con</div>

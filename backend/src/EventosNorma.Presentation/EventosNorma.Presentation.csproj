@@ -9,17 +9,21 @@
   <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
     <PackageReference Include="WolverineFx" Version="5.23.0" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" Version="5.23.0" />
     <PackageReference Include="WolverineFx.FluentValidation" Version="5.23.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EventosNorma.Application\EventosNorma.Application.csproj" />
+    <ProjectReference Include="..\EventosNorma.Domain\EventosNorma.Domain.csproj" />
     <ProjectReference Include="..\EventosNorma.Infrastructure\EventosNorma.Infrastructure.csproj" />
   </ItemGroup>
 
