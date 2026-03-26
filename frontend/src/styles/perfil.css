@@ -1,0 +1,444 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --ink: #0A0A0A;
+    --paper: #FAFAF8;
+    --gold: #E8B84B;
+    --gold-pale: #FBF4E0;
+    --red: #D94F3D;
+    --green: #3D8F5F;
+    --muted: #6B6B6B;
+    --border: #E4E2DC;
+    --border-dk: #1F1F1F;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+}
+
+/* Layout full screen */
+.profile-app {
+    width: 100%;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-rows: 60px minmax(0, 1fr);
+    grid-template-areas:
+    "topbar topbar"
+    "sidebar main";
+    background: var(--paper);
+}
+
+/* TOPBAR */
+.profile-topbar {
+    grid-area: topbar;
+    background: var(--ink);
+    border-bottom: 1px solid var(--border-dk);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem 0 0;
+    min-width: 0;
+}
+
+.profile-topbar-brand {
+    width: 220px;
+    height: 100%;
+    border-right: 1px solid var(--border-dk);
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    color: #faf9f6;
+    font-family: 'Bebas Neue', sans-serif;
+    flex-shrink: 0;
+}
+
+.profile-topbar-center {
+    flex: 1;
+    min-width: 0;
+    padding: 0 1.5rem;
+}
+
+.profile-topbar-greeting {
+    font-size: 20px;
+    color: #faf9f6;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    font-family: 'Bebas Neue', sans-serif;
+}
+
+.profile-topbar-sub {
+    font-size: 12px;
+    color: #8c8c8c;
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-new {
+    height: 34px;
+    padding: 0 16px;
+    background: var(--gold);
+    border: none;
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    white-space: nowrap;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+/* SIDEBAR */
+.profile-sidebar {
+    grid-area: sidebar;
+    background: var(--ink);
+    border-right: 1px solid var(--border-dk);
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 10px;
+    border-radius: 2px;
+    font-size: 13px;
+    color: #777;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.nav-item.active {
+    background: #141414;
+    color: var(--gold);
+}
+.nav-item:hover:not(.active) {
+    background: #0d0d0d;
+    color: #ccc;
+}
+
+/* MAIN */
+.profile-main {
+    grid-area: main;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    padding: 1.5rem;
+}
+
+.profile-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+.panel {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.125rem 1.25rem;
+    background: #fff;
+}
+
+.panel-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+}
+
+/* USER CARD */
+.user-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 0;
+}
+
+.user-avatar-lg {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.user-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.user-name {
+    font-size: clamp(1.4rem, 2.8vw, 2rem);
+    line-height: 1.15;
+    color: var(--ink);
+    margin-top: 4px;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.02em;
+}
+
+/* EVENTS */
+.events-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.ev-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    min-width: 0;
+}
+.ev-row:last-child {
+    border-bottom: none;
+}
+
+.ev-date-box {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #fff;
+}
+
+.ev-day {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--ink);
+    line-height: 1;
+}
+
+.ev-mon {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+}
+
+.ev-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.ev-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ev-loc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* TABLET */
+@media (max-width: 1024px) {
+    .profile-app {
+        grid-template-columns: 76px minmax(0, 1fr);
+    }
+
+    .profile-topbar-brand {
+        width: 76px;
+        justify-content: center;
+        padding: 0;
+        font-size: 18px;
+    }
+
+    .profile-sidebar {
+        padding: 1rem 0.5rem;
+    }
+
+    .nav-item {
+        justify-content: center;
+        padding: 10px 6px;
+        font-size: 12px;
+    }
+
+    .profile-main {
+        padding: 1rem;
+    }
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+    .profile-app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto minmax(0, 1fr);
+        grid-template-areas:
+      "topbar"
+      "sidebar"
+      "main";
+        min-height: 100vh;
+    }
+
+    .profile-topbar {
+        padding: 0 0.75rem;
+        gap: 8px;
+    }
+
+    .profile-topbar-brand {
+        width: auto;
+        border-right: none;
+        padding: 0;
+        font-size: 18px;
+    }
+
+    .profile-topbar-center {
+        padding: 0 0.5rem;
+    }
+
+    .profile-topbar-greeting {
+        font-size: 16px;
+    }
+
+    .profile-topbar-sub {
+        font-size: 10px;
+    }
+
+    .btn-new {
+        height: 30px;
+        padding: 0 10px;
+        font-size: 9px;
+    }
+
+    .avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 10px;
+    }
+
+    .profile-sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border-dk);
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 0.75rem;
+        overflow: visible;
+    }
+
+    .nav-item {
+        font-size: 12px;
+        padding: 8px 10px;
+        justify-content: flex-start;
+    }
+
+    .profile-main {
+        padding: 0.75rem;
+    }
+
+    .panel {
+        padding: 1rem;
+    }
+
+    .user-card {
+        gap: 10px;
+    }
+
+    .user-avatar-lg {
+        width: 50px;
+        height: 50px;
+        font-size: 14px;
+    }
+
+    .ev-row {
+        gap: 10px;
+    }
+
+    .ev-name {
+        font-size: 13px;
+    }
+
+    .ev-loc {
+        font-size: 10px;
+    }
+}
+
+/* EXTRA SMALL */
+@media (max-width: 420px) {
+    .profile-topbar-sub {
+        display: none;
+    }
+
+    .btn-new {
+        padding: 0 8px;
+        font-size: 8px;
+    }
+}
