@@ -7,7 +7,6 @@ using EventosNorma.Infrastructure.Security;
 using EventosNorma.Presentation.Middleware;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -23,15 +22,15 @@ ValidatorOptions.Global.LanguageManager.Culture = new System.Globalization.Cultu
 if (File.Exists(".env")) DotNetEnv.Env.Load(".env");
 else if (File.Exists("../.env")) DotNetEnv.Env.Load("../.env");
 
-// Re-sync configuration to include variables loaded from .env
+// Resincronizar la configuración para incluir las variables cargadas desde .env
 builder.Configuration.AddEnvironmentVariables();
 
-// Wolverine configuration
+// configuración de Wolverine
 builder.Host.UseWolverine(options =>
 {
     // Escaneamos el proyecto de Infrastructure para encontrar los Handlers
     options.Discovery.IncludeAssembly(typeof(RegisterUserHandler).Assembly);
-    
+
     // Activa la validación automática de FluentValidation
     options.UseFluentValidation();
 
@@ -78,9 +77,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
+                             ?? new[] { "http://localhost:3000" };
+        
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
