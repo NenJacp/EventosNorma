@@ -32,6 +32,19 @@ export async function register(firstName, lastName, email, password) {
   return res.json()
 }
 
+export async function getUsers() {
+  const res = await fetch(`${API_BASE}/users`, {
+    method: 'GET',
+    credentials: 'include'
+  })
+
+  if (!res.ok) {
+    throw new Error('No se pudieron obtener los usuarios')
+  }
+
+  return res.json()
+}
+
 export async function logout() {
   await fetch(`${API_BASE}/users/logout`, {
     method: 'POST',

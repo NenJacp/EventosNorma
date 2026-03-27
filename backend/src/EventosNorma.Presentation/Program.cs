@@ -117,11 +117,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
+                // Prioridad 1: Cabecera Authorization
                 var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
                 if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
                 {
                     context.Token = authHeader.Substring("Bearer ".Length).Trim();
                 }
+                // Prioridad 2: Cookie 'jwt'
+                else if (context.Request.Cookies.ContainsKey("jwt"))
+                {
+                    context.Token = context.Request.Cookies["jwt"];
+                }
+                
                 return Task.CompletedTask;
             }
         };

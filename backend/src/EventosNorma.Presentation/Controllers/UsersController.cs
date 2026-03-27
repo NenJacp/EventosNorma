@@ -47,4 +47,11 @@ public class UsersController : ControllerBase
         await _bus.InvokeAsync(command);
         return Ok(new { message = "Usuario desactivado correctamente" });
     }
+
+    [HttpPost("logout")]
+    public IActionResult Logout([FromServices] IHttpContextAccessor httpContextAccessor)
+    {
+        httpContextAccessor.HttpContext?.Response.Cookies.Delete("jwt");
+        return Ok(new { message = "Sesión cerrada correctamente" });
+    }
 }
