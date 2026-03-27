@@ -78,6 +78,7 @@ export default function Register() {
 
     setLoading(true)
     try {
+      console.log('Intentando registrar:', form.email);
       await register(form.nombre, form.apellido, form.email, form.pwd)
       navigate('/login')
     } catch (err) {

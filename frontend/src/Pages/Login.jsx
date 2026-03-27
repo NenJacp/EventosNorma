@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { login } from '../services/api'
 import '../styles/login.css'
 
 const EYE_OPEN = (
@@ -39,24 +40,40 @@ export default function Login() {
   const [pwd, setPwd] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  // Puedes cambiar estos correos admin
+  // Bypass de Administrador para pruebas
   const adminEmails = ['admin@eventos.com', 'thejesus915@admin.com']
 
   async function handleSubmit(e) {
     e.preventDefault()
+    setError('')
     setLoading(true)
 
-    // Simulación de login
-    setTimeout(() => {
-      const isAdmin = adminEmails.includes(email.trim().toLowerCase())
-
-      if (isAdmin) {
+    try {
+      const emailTrim = email.trim().toLowerCase();
+      
+      // Lógica de Bypass solicitada
+      if (adminEmails.includes(emailTrim)) {
+        console.log('Bypass de administrador detectado');
         navigate('/admin-dashboard')
-      } else {
-        navigate('/dashboard')
+        return;
       }
-    }, 500)
+
+      // Login real con API
+      const data = await login(emailTrim, pwd)
+      
+      // Guardar token si existe
+      if (data && data.token) {
+        localStorage.setItem('token', data.token);
+      }
+
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.message || 'Error al iniciar sesión')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -69,6 +86,8 @@ export default function Login() {
             DE VUELTA
           </h1>
           <p className="form-sub">Continúa donde lo dejaste. Tu comunidad te espera.</p>
+
+          {error && <div className="error-message" style={{ color: '#ff4d4d', marginBottom: '1rem', fontWeight: 'bold' }}>{error}</div>}
 
           <form onSubmit={handleSubmit}>
             <div className="field">
