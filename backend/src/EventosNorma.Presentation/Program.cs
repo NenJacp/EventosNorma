@@ -1,6 +1,5 @@
 using System.Text;
-using EventosNorma.Application.Features.Users.Commands;
-using EventosNorma.Infrastructure.Features.Users.Commands;
+using EventosNorma.Application.Features.Users.Commands.RegisterUser;
 using EventosNorma.Domain.Interfaces;
 using EventosNorma.Infrastructure.Persistence;
 using EventosNorma.Infrastructure.Security;
@@ -28,7 +27,7 @@ builder.Configuration.AddEnvironmentVariables();
 // configuración de Wolverine
 builder.Host.UseWolverine(options =>
 {
-    // Escaneamos el proyecto de Infrastructure para encontrar los Handlers
+    // AHORA ESCANEAMOS APPLICATION PARA LOS HANDLERS
     options.Discovery.IncludeAssembly(typeof(RegisterUserHandler).Assembly);
 
     // Activa la validación automática de FluentValidation
@@ -71,7 +70,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
+// Registrar Validadores
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserHandler>();
 
 builder.Services.AddCors(options =>
 {
@@ -139,6 +139,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 

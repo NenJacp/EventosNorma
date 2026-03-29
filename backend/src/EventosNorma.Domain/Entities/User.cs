@@ -9,6 +9,10 @@ public class User
     public string PasswordHash { get; private set; } = string.Empty;
     public bool IsActive { get; private set; } = true;
 
+    // Fechas de auditoría
+    public DateTime CreatedAt { get; private set; }
+    public DateTime? UpdatedAt { get; private set; } // nullable porque al crear aún no hay actualización
+
     private User() { } // Para EF Core
 
     public static User Create(string firstName, string lastName, string email, string passwordHash)
@@ -24,9 +28,14 @@ public class User
             LastName = lastName,
             Email = email,
             PasswordHash = passwordHash,
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
     }
 
-    public void Deactivate() => IsActive = false;
+    public void Deactivate()
+    {
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }
