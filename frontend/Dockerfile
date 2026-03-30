@@ -1,30 +1,33 @@
-FROM node:20-alpine AS build
+# Etapa de construcción (Debian Slim para máxima compatibilidad)
+FROM node:22-slim AS build
+
 WORKDIR /app
+
+# Instalar pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copiar archivos de dependencias
+COPY package.json pnpm-lock.yaml ./
+
+# Instalar dependencias
+RUN pnpm install --frozen-lockfile
+
+# Copiar el resto del código
+COPY . .
+
+# Argumento para la URL de la API
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
 
-FROM nginx:stable-alpine
+# Construir la aplicación
+RUN pnpm run build
+
+# Etapa de producción (Alpine es perfecto para servir archivos estáticos)
+FROM nginx:stable
+
+# Copiar la build del frontend
 COPY --from=build /app/dist /usr/share/nginx/html
-RUN echo 'server { \
-    listen 80; \
-    server_name _; \
-    root /usr/share/nginx/html; \
-    index index.html index.htm; \
-    location /api/ { \
-        proxy_pass http://backend:80; \
-        proxy_http_version 1.1; \
-        proxy_set_header Host $host; \
-        proxy_set_header X-Real-IP $remote_addr; \
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto $scheme; \
-    } \
-    location / { \
-        try_files $uri $uri/ /index.html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
+
 CMD ["nginx", "-g", "daemon off;"]

@@ -54,4 +54,13 @@ public class UsersController : ControllerBase
         httpContextAccessor.HttpContext?.Response.Cookies.Delete("jwt");
         return Ok(new { message = "Sesión cerrada correctamente" });
     }
+
+    [Authorize]
+    [HttpGet("currentUser")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var user = await _bus.InvokeAsync<CurrentUserViewModel>(new GetCurrentUserQuery());
+        return Ok(user);
+    }
+
 }
