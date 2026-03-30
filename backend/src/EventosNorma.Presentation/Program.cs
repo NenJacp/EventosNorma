@@ -2,6 +2,7 @@ using System.Text;
 using EventosNorma.Application.Features.Users.Commands.RegisterUser;
 using EventosNorma.Domain.Interfaces;
 using EventosNorma.Infrastructure.Persistence;
+using EventosNorma.Infrastructure.Repositories;
 using EventosNorma.Infrastructure.Security;
 using EventosNorma.Presentation.Middleware;
 using FluentValidation;
@@ -27,13 +28,8 @@ builder.Configuration.AddEnvironmentVariables();
 // configuración de Wolverine
 builder.Host.UseWolverine(options =>
 {
-    // AHORA ESCANEAMOS APPLICATION PARA LOS HANDLERS
     options.Discovery.IncludeAssembly(typeof(RegisterUserHandler).Assembly);
-
-    // Activa la validación automática de FluentValidation
     options.UseFluentValidation();
-
-    // Configura Wolverine para usar transacciones de EF Core automáticamente
     options.UseEntityFrameworkCoreTransactions();
 });
 
@@ -117,13 +113,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                // Prioridad 1: Cabecera Authorization
                 var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
                 if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
                 {
                     context.Token = authHeader.Substring("Bearer ".Length).Trim();
                 }
-                // Prioridad 2: Cookie 'jwt'
                 else if (context.Request.Cookies.ContainsKey("jwt"))
                 {
                     context.Token = context.Request.Cookies["jwt"];
@@ -135,11 +129,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-
 builder.Services.AddHttpContextAccessor();
+
+// REGISTRO DE SERVICIOS
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+
+// Repositorios
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+builder.Services.AddScoped<IStateRepository, StateRepository>();
+builder.Services.AddScoped<ICityRepository, CityRepository>();
 
 var app = builder.Build();
 
@@ -162,7 +163,6 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
     var db = services.GetRequiredService<AppDbContext>();
 
     int retries = 10;

@@ -24,6 +24,18 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(150);
 
+        builder.Property(e => e.Role)
+            .IsRequired()
+            .HasConversion<int>();
+
+        builder.Property(e => e.IsBanned)
+            .HasDefaultValue(false);
+
+        builder.Property(e => e.BanReason)
+            .HasMaxLength(500);
+
+        builder.Property(e => e.BannedAt);
+
         builder.Property(e => e.CreatedAt)
             .IsRequired();
 

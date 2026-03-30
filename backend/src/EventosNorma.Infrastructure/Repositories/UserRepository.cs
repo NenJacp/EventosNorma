@@ -3,7 +3,7 @@ using EventosNorma.Domain.Interfaces;
 using EventosNorma.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventosNorma.Infrastructure.Persistence;
+namespace EventosNorma.Infrastructure.Repositories;
 
 public class UserRepository : IUserRepository
 {

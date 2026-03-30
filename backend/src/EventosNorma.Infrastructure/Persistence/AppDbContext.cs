@@ -1,4 +1,7 @@
+using EventosNorma.Domain.Associations;
+using EventosNorma.Domain.Catalogs;
 using EventosNorma.Domain.Entities;
+using EventosNorma.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventosNorma.Infrastructure.Persistence;
@@ -7,34 +10,41 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+    // Entidades Principales
     public DbSet<User> Users => Set<User>();
+    public DbSet<Event> Events => Set<Event>();
+
+    // Catálogos Geográficos
+    public DbSet<Country> Countries => Set<Country>();
+    public DbSet<State> States => Set<State>();
+    public DbSet<City> Cities => Set<City>();
+
+    // Asociaciones
+    public DbSet<EventMember> EventMembers => Set<EventMember>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 
-    // Sobrescribimos SaveChangesAsync para automatizar las fechas de auditoría
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker.Entries();
 
         foreach (var entry in entries)
         {
-            if (entry.Entity is User user)
+            if (entry.Entity is IAuditableEntity auditable)
             {
                 if (entry.State == EntityState.Added)
                 {
-                    // Solo asignamos si no se ha asignado antes (aunque ya lo hace el Factory Method, esto es seguridad extra)
-                    var createdAtProperty = entry.Property(nameof(User.CreatedAt));
-                    if ((DateTime)createdAtProperty.CurrentValue == default)
+                    if (auditable.CreatedAt == default)
                     {
-                        createdAtProperty.CurrentValue = DateTime.UtcNow;
+                        entry.Property(nameof(IAuditableEntity.CreatedAt)).CurrentValue = DateTime.UtcNow;
                     }
                 }
                 else if (entry.State == EntityState.Modified)
                 {
-                    entry.Property(nameof(User.UpdatedAt)).CurrentValue = DateTime.UtcNow;
+                    entry.Property(nameof(IAuditableEntity.UpdatedAt)).CurrentValue = DateTime.UtcNow;
                 }
             }
         }
