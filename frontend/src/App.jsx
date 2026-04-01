@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import Login from './Pages/Login'
 import Register from './Pages/Register'
 import Dashboard from './Pages/Dashboard'
@@ -9,6 +10,7 @@ import AdminDashboard from './Pages/Admin_dashboard'
 function App() {
     return (
         <BrowserRouter>
+            <Toaster position="top-center" richColors />
             <Routes>
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />

@@ -25,6 +25,18 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .HasForeignKey(e => e.CityId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Relación con Categoría
+        builder.HasOne(e => e.EventCategory)
+            .WithMany(c => c.Events)
+            .HasForeignKey(e => e.EventCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Relación con Tipo
+        builder.HasOne(e => e.EventType)
+            .WithMany(c => c.Events)
+            .HasForeignKey(e => e.EventTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Relación con Creador (Usuario)
         builder.HasOne(e => e.Creator)
             .WithMany() 

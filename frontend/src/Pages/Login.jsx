@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { login } from '../services/api'
 import '../styles/login.css'
 
@@ -40,14 +41,12 @@ export default function Login() {
   const [pwd, setPwd] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   // Bypass de Administrador para pruebas
   const adminEmails = ['admin@eventos.com', 'thejesus915@admin.com']
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
@@ -56,6 +55,7 @@ export default function Login() {
       // Lógica de Bypass solicitada
       if (adminEmails.includes(emailTrim)) {
         console.log('Bypass de administrador detectado');
+        toast.success(`Bienvenido Administrador (${emailTrim})`);
         navigate('/admin-dashboard')
         return;
       }
@@ -68,9 +68,13 @@ export default function Login() {
         localStorage.setItem('token', data.token);
       }
 
-      navigate('/dashboard')
+      // Mostrar bienvenida con nombre y apellido devueltos por el backend
+      toast.success(`¡Bienvenido ${data.firstName} ${data.lastName}!`);
+      
+      // Pequeña espera para que se vea el toast antes de navegar
+      setTimeout(() => navigate('/dashboard'), 1000);
     } catch (err) {
-      setError(err.message || 'Error al iniciar sesión')
+      toast.error(err.message || 'Error al iniciar sesión')
     } finally {
       setLoading(false)
     }
@@ -86,8 +90,6 @@ export default function Login() {
             DE VUELTA
           </h1>
           <p className="form-sub">Continúa donde lo dejaste. Tu comunidad te espera.</p>
-
-          {error && <div className="error-message" style={{ color: '#ff4d4d', marginBottom: '1rem', fontWeight: 'bold' }}>{error}</div>}
 
           <form onSubmit={handleSubmit}>
             <div className="field">

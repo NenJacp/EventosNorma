@@ -1,6 +1,7 @@
 // src/pages/Register.jsx
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { register } from '../services/api'
 import '../styles/register.css'
 
@@ -50,7 +51,6 @@ export default function Register() {
   const [showPwd2, setShowPwd2] = useState(false)
   const [terms, setTerms] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const strength = checkStrength(form.pwd)
 
@@ -65,14 +65,34 @@ export default function Register() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError('')
 
+    // Validaciones Regex
+    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const passwordRegex = /^.{8,}$/
+
+    if (!form.nombre.trim() || !nameRegex.test(form.nombre)) {
+      toast.error('El nombre solo puede contener letras y espacios.')
+      return
+    }
+    if (!form.apellido.trim() || !nameRegex.test(form.apellido)) {
+      toast.error('El apellido solo puede contener letras y espacios.')
+      return
+    }
+    if (!emailRegex.test(form.email)) {
+      toast.error('Ingresa un correo electrónico válido.')
+      return
+    }
+    if (!passwordRegex.test(form.pwd)) {
+      toast.error('La contraseña debe tener al menos 8 caracteres.')
+      return
+    }
     if (!terms) {
-      setError('Acepta los términos para continuar.')
+      toast.error('Acepta los términos para continuar.')
       return
     }
     if (matchStatus !== 'ok') {
-      setError('Las contraseñas no coinciden.')
+      toast.error('Las contraseñas no coinciden.')
       return
     }
 
@@ -80,9 +100,10 @@ export default function Register() {
     try {
       console.log('Intentando registrar:', form.email);
       await register(form.nombre, form.apellido, form.email, form.pwd)
-      navigate('/login')
+      toast.success(`¡Bienvenido! Cuenta creada con éxito.`);
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError(err.message)
+      toast.error(err.message)
     } finally {
       setLoading(false)
     }
@@ -96,8 +117,6 @@ export default function Register() {
         <p className="form-sub">
           Crea tu perfil, publica eventos y conecta con tu audiencia en toda LATAM.
         </p>
-
-        {error && <div className="error-message">{error}</div>}
 
         <div className="field-row">
           <div className="field">

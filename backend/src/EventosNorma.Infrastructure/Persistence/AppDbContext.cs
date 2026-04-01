@@ -19,6 +19,10 @@ public class AppDbContext : DbContext
     public DbSet<State> States => Set<State>();
     public DbSet<City> Cities => Set<City>();
 
+    // Catálogos de Eventos
+    public DbSet<EventCategory> EventCategories => Set<EventCategory>();
+    public DbSet<EventType> EventTypes => Set<EventType>();
+
     // Asociaciones
     public DbSet<EventMember> EventMembers => Set<EventMember>();
 

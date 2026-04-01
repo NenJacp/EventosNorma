@@ -25,6 +25,8 @@ public class Event : IAuditableEntity
 
     // 4. Relaciones / FKs
     public int CityId { get; private set; }
+    public int EventCategoryId { get; private set; }
+    public int EventTypeId { get; private set; }
     public int CreatedById { get; private set; }
 
     // 5. Auditoría
@@ -33,6 +35,8 @@ public class Event : IAuditableEntity
 
     // 6. Navegación
     public City City { get; private set; } = null!;
+    public EventCategory EventCategory { get; private set; } = null!;
+    public EventType EventType { get; private set; } = null!;
     public User Creator { get; private set; } = null!;
     public ICollection<EventMember> Members { get; private set; } = [];
 
@@ -40,11 +44,13 @@ public class Event : IAuditableEntity
     private Event() { }
 
     // --- Fábrica (Factory) ---
-    public static Event Create(string title, string? description, DateTime startDate, DateTime endDate, string? locationDetail, int cityId, bool isPrivate, int createdById, int maxCapacity)
+    public static Event Create(string title, string? description, DateTime startDate, DateTime endDate, string? locationDetail, int cityId, int eventCategoryId, int eventTypeId, bool isPrivate, int createdById, int maxCapacity)
     {
         ValidateTitle(title);
         ValidateDates(startDate, endDate);
         ValidateFK(cityId, nameof(CityId));
+        ValidateFK(eventCategoryId, nameof(EventCategoryId));
+        ValidateFK(eventTypeId, nameof(EventTypeId));
         ValidateFK(createdById, nameof(CreatedById));
         ValidateCapacity(maxCapacity, nameof(MaxCapacity));
 
@@ -56,6 +62,8 @@ public class Event : IAuditableEntity
             EndDate = endDate,
             LocationDetail = !string.IsNullOrWhiteSpace(locationDetail) ? locationDetail.Trim() : "Sin detalles del lugar",
             CityId = cityId,
+            EventCategoryId = eventCategoryId,
+            EventTypeId = eventTypeId,
             MaxCapacity = maxCapacity,
             IsPrivate = isPrivate,
             CreatedById = createdById,
@@ -125,6 +133,23 @@ public class Event : IAuditableEntity
         if (CityId == cityId) return;
 
         CityId = cityId;
+    }
+
+    public void ChangeCategory(int eventCategoryId)
+    {
+        ValidateFK(eventCategoryId, nameof(EventCategoryId));
+        if (EventCategoryId == eventCategoryId) return;
+
+        EventCategoryId = eventCategoryId;
+    }
+
+    public void ChangeType(int eventTypeId)
+    {
+        ValidateFK(eventTypeId, nameof(EventTypeId));
+
+        if (EventTypeId == eventTypeId) return;
+
+        EventTypeId = eventTypeId;
     }
 
     public void ChangeStatus(EventStatus status)

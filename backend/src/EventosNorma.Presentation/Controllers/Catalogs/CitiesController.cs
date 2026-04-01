@@ -1,0 +1,44 @@
+using EventosNorma.Application.Features.Catalogs.City.Commands;
+using EventosNorma.Application.Features.Catalogs.City.Queries;
+using EventosNorma.Application.Features.Catalogs.City.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Wolverine;
+
+namespace EventosNorma.Presentation.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class CitiesController : ControllerBase
+{
+    private readonly IMessageBus _bus;
+
+    public CitiesController(IMessageBus bus)
+    {
+        _bus = bus;
+    }
+
+    [HttpGet("state/{stateId}")]
+    public async Task<IActionResult> GetByState(int stateId)
+    {
+        var items = await _bus.InvokeAsync<IEnumerable<CityViewModel>>(new GetCitiesByStateQuery(stateId));
+        return Ok(items);
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost]
+    public async Task<IActionResult> Create(CreateCityCommand command)
+    {
+        var id = await _bus.InvokeAsync<int>(command);
+        return Created($"/api/cities/{id}", new { id });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, UpdateCityCommand command)
+    {
+        if (id != command.Id) return BadRequest();
+        var success = await _bus.InvokeAsync<bool>(command);
+        return success ? Ok() : NotFound();
+    }
+}

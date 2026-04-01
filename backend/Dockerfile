@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim AS build
 WORKDIR /app
 
 # Copy solution and project files
@@ -16,7 +16,7 @@ COPY . .
 RUN dotnet publish src/EventosNorma.Presentation/EventosNorma.Presentation.csproj -c Release -o /out
 
 # Final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim
 WORKDIR /app
 COPY --from=build /out .
 ENTRYPOINT ["dotnet", "EventosNorma.Presentation.dll"]

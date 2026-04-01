@@ -25,8 +25,10 @@ export async function register(firstName, lastName, email, password) {
   })
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ detail: 'Error en el servidor' }))
-    throw new Error(error.detail || 'Error al registrar')
+    const errorData = await res.json().catch(() => ({}));
+    // Soporta detail (RFC) y Detail (System.Text.Json default)
+    const errorMessage = errorData.detail || errorData.Detail || 'Error al registrar';
+    throw new Error(errorMessage);
   }
 
   return res.json()

@@ -22,8 +22,11 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 # Construir la aplicación
 RUN pnpm run build
 
-# Etapa de producción (Alpine es perfecto para servir archivos estáticos)
+# Etapa de producción ( Alpine para Nginx)
 FROM nginx:stable
+
+# Copiar configuración personalizada de Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copiar la build del frontend
 COPY --from=build /app/dist /usr/share/nginx/html

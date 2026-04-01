@@ -50,6 +50,12 @@ public partial class Country : IAuditableEntity
         IsActive = false;
     }
 
+    public void Activate()
+    {
+        if (IsActive) return;
+        IsActive = true;
+    }
+
     public void ChangeInfo(string? name, string? code)
     {
         if (!string.IsNullOrWhiteSpace(name))

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { logout } from '../services/api'
+import { toast } from 'sonner'
 import '../styles/dashboard.css'
 
 const posts = [
@@ -100,6 +102,17 @@ export default function Dashboard() {
     setOpenModal(false)
   }
 
+  const handleLogout = async () => {
+    try {
+      await logout()
+      localStorage.removeItem('token')
+      toast.success('Sesión cerrada correctamente')
+      navigate('/login')
+    } catch (err) {
+      toast.error('Error al cerrar sesión')
+    }
+  }
+
   return (
       <div className="app">
         {/* TOPBAR */}
@@ -107,7 +120,7 @@ export default function Dashboard() {
           <div className="topbar-brand">Eventos</div>
 
           <div className="topbar-center">
-            <div className="topbar-greeting">BIENVENIDA, ANA</div>
+            <div className="topbar-greeting">BIENVENIDO</div>
             <div className="topbar-sub">Dashboard general</div>
           </div>
 
@@ -123,7 +136,7 @@ export default function Dashboard() {
                 aria-label="Ir al perfil"
                 title="Perfil"
             >
-              AG
+              U
             </button>
           </div>
         </header>
@@ -135,24 +148,20 @@ export default function Dashboard() {
           </Link>
 
           <Link to="#" className="nav-item">
-            <span>Publicaciones</span>
+            <span>Mis Eventos</span>
           </Link>
 
           <Link to="#" className="nav-item">
-            <span>Eventos</span>
-          </Link>
-
-          <Link to="#" className="nav-item">
-            <span>Comunidad</span>
+            <span>Mis Inscripciones</span>
           </Link>
 
           <div
-              className="nav-item"
-              onClick={() => navigate('/login')}
+              className="nav-item logout-item"
+              onClick={handleLogout}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') navigate('/login')
+                if (e.key === 'Enter' || e.key === ' ') handleLogout()
               }}
           >
             <span>Cerrar sesión</span>

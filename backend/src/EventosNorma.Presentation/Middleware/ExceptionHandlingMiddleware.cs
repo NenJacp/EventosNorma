@@ -52,10 +52,10 @@ public class ExceptionHandlingMiddleware
                     g => g.Select(e => e.ErrorMessage).ToArray()
                 );
         }
-        else if (exception is EventosNorma.Domain.Exceptions.DomainException)
+        else if (exception is EventosNorma.Domain.Exceptions.DomainException || exception is ArgumentException)
         {
             code = HttpStatusCode.BadRequest;
-            title = "Domain Error";
+            title = exception is ArgumentException ? "Argument Error" : "Domain Error";
             detail = exception.Message;
             type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
         }

@@ -120,6 +120,66 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
                     b.ToTable("countries", (string)null);
                 });
 
+            modelBuilder.Entity("EventosNorma.Domain.Catalogs.EventCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EventCategories");
+                });
+
+            modelBuilder.Entity("EventosNorma.Domain.Catalogs.EventType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EventTypes");
+                });
+
             modelBuilder.Entity("EventosNorma.Domain.Catalogs.State", b =>
                 {
                     b.Property<int>("Id")
@@ -182,6 +242,12 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("EventCategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EventTypeId")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -215,6 +281,10 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
                     b.HasIndex("CityId");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("EventCategoryId");
+
+                    b.HasIndex("EventTypeId");
 
                     b.ToTable("events", (string)null);
                 });
@@ -333,9 +403,25 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("EventosNorma.Domain.Catalogs.EventCategory", "EventCategory")
+                        .WithMany("Events")
+                        .HasForeignKey("EventCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EventosNorma.Domain.Catalogs.EventType", "EventType")
+                        .WithMany("Events")
+                        .HasForeignKey("EventTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("City");
 
                     b.Navigation("Creator");
+
+                    b.Navigation("EventCategory");
+
+                    b.Navigation("EventType");
                 });
 
             modelBuilder.Entity("EventosNorma.Domain.Catalogs.City", b =>
@@ -346,6 +432,16 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EventosNorma.Domain.Catalogs.Country", b =>
                 {
                     b.Navigation("States");
+                });
+
+            modelBuilder.Entity("EventosNorma.Domain.Catalogs.EventCategory", b =>
+                {
+                    b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("EventosNorma.Domain.Catalogs.EventType", b =>
+                {
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("EventosNorma.Domain.Catalogs.State", b =>

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { logout } from '../services/api'
+import { toast } from 'sonner'
 import '../styles/admin-dashboard.css'
 
 const initialUsers = [
@@ -67,6 +69,17 @@ export default function AdminDashboard() {
         setEvents((prev) => prev.filter((e) => e.id !== id))
     }
 
+    const handleLogout = async () => {
+        try {
+            await logout()
+            localStorage.removeItem('token')
+            toast.success('Sesión de administrador cerrada')
+            navigate('/login')
+        } catch (err) {
+            toast.error('Error al cerrar sesión')
+        }
+    }
+
     return (
         <div className="admin-layout">
             <aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}>
@@ -79,7 +92,7 @@ export default function AdminDashboard() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <button className="btn danger" onClick={() => navigate('/login')}>
+                    <button className="btn danger" onClick={handleLogout}>
                         Cerrar sesión
                     </button>
                 </div>
