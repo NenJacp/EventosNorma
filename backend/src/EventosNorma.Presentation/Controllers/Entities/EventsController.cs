@@ -46,6 +46,14 @@ public class EventsController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("me/subscriptions")]
+    public async Task<IActionResult> GetMySubscriptions([FromQuery] GetMySubscriptionsQuery query)
+    {
+        var response = await _bus.InvokeAsync<PagedList<SubscriptionViewModel>>(query);
+        return Ok(response);
+    }
+
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(CreateEventCommand command)
     {
@@ -68,13 +76,5 @@ public class EventsController : ControllerBase
     {
         var success = await _bus.InvokeAsync<bool>(new UpdateEventCommand(id, null, null, null, null, null, null, null, null, null, null, null, false));
         return success ? Ok(new { message = "Evento desactivado correctamente" }) : NotFound();
-    }
-
-    [Authorize]
-    [HttpPost("{id}/join")]
-    public async Task<IActionResult> Join(int id)
-    {
-        var success = await _bus.InvokeAsync<bool>(new JoinEventCommand(id));
-        return success ? Ok(new { message = "Te has unido al evento correctamente" }) : BadRequest();
     }
 }

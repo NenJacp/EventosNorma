@@ -5,6 +5,8 @@ import Register from './Pages/Register'
 import Dashboard from './Pages/Dashboard'
 import Perfil from './Pages/Perfil'
 import AdminDashboard from './Pages/Admin_dashboard'
+import MyEvents from './Pages/MyEvents'
+import MySubscriptions from './Pages/MySubscriptions'
 
 
 function App() {
@@ -18,6 +20,8 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                <Route path="/my-events" element={<MyEvents />} />
+                <Route path="/my-subscriptions" element={<MySubscriptions />} />
             </Routes>
         </BrowserRouter>
     )

@@ -15,4 +15,5 @@ public record EventViewModel(
     string CreatorName,
     EventStatus Status,
     int MaxCapacity,
-    bool IsPrivate);
+    bool IsPrivate,
+    bool IsActive);

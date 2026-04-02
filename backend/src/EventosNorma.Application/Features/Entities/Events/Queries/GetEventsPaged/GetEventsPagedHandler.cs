@@ -47,7 +47,8 @@ public class GetEventsPagedHandler
             $"{e.Creator.FirstName} {e.Creator.LastName}",
             e.Status,
             e.MaxCapacity,
-            e.IsPrivate));
+            e.IsPrivate,
+            e.IsActive));
 
         return new PagedList<EventViewModel>(
             viewModels,

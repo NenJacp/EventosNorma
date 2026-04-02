@@ -24,6 +24,7 @@ public static class InfrastructureServicesExtensions
         builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IEventRepository, EventRepository>();
+        builder.Services.AddScoped<IEventMemberRepository, EventMemberRepository>();
         builder.Services.AddScoped<ICountryRepository, CountryRepository>();
         builder.Services.AddScoped<IStateRepository, StateRepository>();
         builder.Services.AddScoped<ICityRepository, CityRepository>();

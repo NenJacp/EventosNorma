@@ -147,11 +147,11 @@ export default function Dashboard() {
             <span>Inicio</span>
           </Link>
 
-          <Link to="#" className="nav-item">
+          <Link to="/my-events" className="nav-item">
             <span>Mis Eventos</span>
           </Link>
 
-          <Link to="#" className="nav-item">
+          <Link to="/my-subscriptions" className="nav-item">
             <span>Mis Inscripciones</span>
           </Link>
 
