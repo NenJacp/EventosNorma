@@ -16,6 +16,11 @@ public class LoginHandler
             throw new UnauthorizedAccessException("El usuario no existe o está inactivo.");
         }
 
+        if (!user.EmailVerified)
+        {
+            throw new UnauthorizedAccessException("Debes verificar tu correo electrónico antes de iniciar sesión.");
+        }
+
         if (!passwordHasher.Verify(query.Password, user.PasswordHash))
         {
             throw new UnauthorizedAccessException("Contraseña incorrecta.");

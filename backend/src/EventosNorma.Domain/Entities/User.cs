@@ -23,6 +23,8 @@ public partial class User : IAuditableEntity
     public string LastName { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
     public string PasswordHash { get; private set; } = string.Empty;
+    public string? ProfileImageUrl { get; private set; }
+    public bool EmailVerified { get; private set; } = false;
 
     // 3. Estado Lógico
     public UserRole Role { get; private set; } = UserRole.User;
@@ -37,6 +39,8 @@ public partial class User : IAuditableEntity
 
     // 5. Navegación
     public ICollection<EventMember> EventMemberships { get; private set; } = [];
+    public ICollection<UserToken> Tokens { get; private set; } = [];
+    public ICollection<EventComment> Comments { get; private set; } = [];
 
     // --- Constructor ---
     private User() { }
@@ -58,11 +62,15 @@ public partial class User : IAuditableEntity
             Role = role,
             IsActive = true,
             IsBanned = false,
+            EmailVerified = false,
             CreatedAt = DateTime.UtcNow
         };
     }
 
     // --- Métodos de Cambio de Estado ---
+    public void VerifyEmail() => EmailVerified = true;
+    public void UpdateProfileImage(string? imageUrl) => ProfileImageUrl = imageUrl;
+
     public void Deactivate()
     {
         if (!IsActive) return;
@@ -126,6 +134,7 @@ public partial class User : IAuditableEntity
         if (string.Equals(Email, newEmail, StringComparison.Ordinal)) return;
 
         Email = newEmail;
+        EmailVerified = false; // Re-verificar si cambia de email
     }
 
     public void ChangePassword(string passwordHash)

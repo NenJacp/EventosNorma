@@ -22,4 +22,25 @@ Define el estado actual de un evento.
 
 ---
 
-**Nota:** Estos valores empiezan en 1 para evitar confusiones con el valor por defecto (0) de C#.
+## 3. UserTokenType (Tabla `user_tokens`, columna `Type`)
+Tipo de token de verificación.
+
+| ID | Nombre             | Descripción |
+|----|--------------------|-------------|
+| 1  | EmailVerification | Token para confirmar email del usuario. |
+| 2  | PasswordReset      | Token para restablecer contraseña. |
+
+---
+
+## 4. EnrollmentStatus (Tabla `event_members`, columna `Status`)
+Estado de la inscripción a un evento.
+
+| ID | Nombre   | Descripción |
+|----|----------|-------------|
+| 1  | Pending  | Solicitada, esperando aprobación. |
+| 2  | Approved | Aprobada, el usuario ya es miembro. |
+| 3  | Rejected | Rechazada, no se unió al evento. |
+
+---
+
+**Nota:** Todos los valores empiezan en 1 para evitar confusiones con el valor por defecto (0) de C#.

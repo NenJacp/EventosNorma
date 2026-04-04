@@ -18,10 +18,12 @@ public class Event : IAuditableEntity
     public string LocationDetail { get; private set; } = "Sin detalles";
     public bool IsPrivate { get; private set; }
     public int MaxCapacity { get; private set; }
+    public string? ImageUrl { get; private set; }
+    public bool RequiresApproval { get; private set; } = false;
 
     // 3. Estado Lógico
     public EventStatus Status { get; private set; }
-    public bool IsActive { get; private set; }
+    public bool IsActive { get; private set; } = true;
 
     // 4. Relaciones / FKs
     public int CityId { get; private set; }
@@ -39,12 +41,13 @@ public class Event : IAuditableEntity
     public EventType EventType { get; private set; } = null!;
     public User Creator { get; private set; } = null!;
     public ICollection<EventMember> Members { get; private set; } = [];
+    public ICollection<EventComment> Comments { get; private set; } = [];
 
     // --- Constructor ---
     private Event() { }
 
     // --- Fábrica (Factory) ---
-    public static Event Create(string title, string? description, DateTime startDate, DateTime endDate, string? locationDetail, int cityId, int eventCategoryId, int eventTypeId, bool isPrivate, int createdById, int maxCapacity)
+    public static Event Create(string title, string? description, DateTime startDate, DateTime endDate, string? locationDetail, int cityId, int eventCategoryId, int eventTypeId, bool isPrivate, int createdById, int maxCapacity, bool requiresApproval = false)
     {
         ValidateTitle(title);
         ValidateDates(startDate, endDate);
@@ -66,6 +69,7 @@ public class Event : IAuditableEntity
             EventTypeId = eventTypeId,
             MaxCapacity = maxCapacity,
             IsPrivate = isPrivate,
+            RequiresApproval = requiresApproval,
             CreatedById = createdById,
             Status = EventStatus.Open,
             IsActive = true,
@@ -74,6 +78,9 @@ public class Event : IAuditableEntity
     }
 
     // --- Métodos de Cambio de Estado ---
+    public void UpdateImage(string? imageUrl) => ImageUrl = imageUrl;
+    public void ChangeApprovalRequirement(bool requiresApproval) => RequiresApproval = requiresApproval;
+
     public void Deactivate()
     {
         if (!IsActive) return;

@@ -25,6 +25,8 @@ public class AppDbContext : DbContext
 
     // Asociaciones
     public DbSet<EventMember> EventMembers => Set<EventMember>();
+    public DbSet<EventComment> EventComments => Set<EventComment>();
+    public DbSet<UserToken> UserTokens => Set<UserToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

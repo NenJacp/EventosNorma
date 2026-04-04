@@ -13,7 +13,7 @@ public class EventCategory : IAuditableEntity
     public string Description { get; private set; } = "Sin descripción";
 
     // 3. Estado Lógico
-    public bool IsActive { get; private set; }
+    public bool IsActive { get; private set; } = true;
 
     // 4. Auditoría
     public DateTime CreatedAt { get; private set; }

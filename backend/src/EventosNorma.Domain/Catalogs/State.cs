@@ -17,7 +17,7 @@ public partial class State : IAuditableEntity
     public string Code { get; private set; } = "Sin código";
 
     // 3. Estado Lógico
-    public bool IsActive { get; private set; }
+    public bool IsActive { get; private set; } = true;
 
     // 4. Relaciones / FKs
     public int CountryId { get; private set; }

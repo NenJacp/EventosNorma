@@ -18,7 +18,7 @@ public partial class City : IAuditableEntity
     public string Code { get; private set; } = "Sin código";
 
     // 3. Estado Lógico
-    public bool IsActive { get; private set; }
+    public bool IsActive { get; private set; } = true;
 
     // 4. Relaciones / FKs
     public int StateId { get; private set; }
@@ -43,7 +43,7 @@ public partial class City : IAuditableEntity
         return new City
         {
             Name = name.Trim(),
-            Code = code?.Trim() ?? "Sin código",
+            Code = !string.IsNullOrWhiteSpace(code) ? code.Trim().ToUpper() : "Sin código",
             StateId = stateId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow

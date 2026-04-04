@@ -3,7 +3,7 @@ services:
     image: postgres:17
     container_name: eventosnorma_db
     env_file:
-      - ./.env
+      - backend/.env
     environment:
       POSTGRES_DB: ${EVENTOSNORMA_DB_NAME}
       POSTGRES_USER: ${EVENTOSNORMA_DB_USER}
@@ -12,38 +12,40 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - eventos_network
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: eventosnorma_backend
+    env_file:
+      - backend/.env
     ports:
       - "5000:80"
-    env_file:
-      - ./.env
-    environment:
-      - EVENTOSNORMA_DB_HOST=${EVENTOSNORMA_DB_HOST}
-      - EVENTOSNORMA_DB_PORT=${EVENTOSNORMA_DB_PORT}
-      - EVENTOSNORMA_DB_NAME=${EVENTOSNORMA_DB_NAME}
-      - EVENTOSNORMA_DB_USER=${EVENTOSNORMA_DB_USER}
-      - EVENTOSNORMA_DB_PASSWORD=${EVENTOSNORMA_DB_PASSWORD}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
     depends_on:
       - db
+    networks:
+      - eventos_network
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     container_name: eventosnorma_frontend
+    env_file:
+      - frontend/.env
     ports:
       - "3000:80"
     depends_on:
       - backend
+    networks:
+      - eventos_network
+
+networks:
+  eventos_network:
+    driver: bridge
 
 volumes:
   postgres_data:

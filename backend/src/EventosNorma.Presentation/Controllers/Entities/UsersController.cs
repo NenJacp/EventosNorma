@@ -33,6 +33,13 @@ public class UsersController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("verify-email")]
+    public async Task<IActionResult> VerifyEmail(VerifyEmailCommand command)
+    {
+        await _bus.InvokeAsync(command);
+        return Ok(new { message = "Correo electrónico verificado con éxito." });
+    }
+
     [HttpPost("logout")]
     public IActionResult Logout([FromServices] IHttpContextAccessor httpContextAccessor)
     {
