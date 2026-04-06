@@ -3,14 +3,13 @@ using FluentValidation;
 
 namespace EventosNorma.Application.Features.Entities.Users.Commands;
 
-public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
+public class ResetPasswordValidator : AbstractValidator<ResetPasswordCommand>
 {
-    public RegisterUserValidator()
+    public ResetPasswordValidator()
     {
-        RuleFor(x => x.FirstName).NotEmpty().MaximumLength(50);
-        RuleFor(x => x.LastName).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Email).NotEmpty().EmailAddress();
-        RuleFor(x => x.Password)
+        RuleFor(x => x.Token).NotEmpty();
+        RuleFor(x => x.NewPassword)
             .NotEmpty()
             .Must(User.IsValidPasswordFormat)
             .WithMessage(User.PasswordRequirementsMessage);
