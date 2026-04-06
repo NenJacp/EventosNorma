@@ -23,6 +23,7 @@ public interface IEventRepository
         DateTime? minCreatedAt = null,
         bool? onlyAvailable = null,
         bool? isActive = null,
+        string? accessCode = null,
         string? sortBy = null,
         bool isAscending = true);
     Task AddAsync(Event @event);

@@ -18,4 +18,5 @@ public record GetEventsPagedQuery : PaginationParams
     public DateTime? MinCreatedAt { get; init; }
     public bool? OnlyAvailable { get; init; }
     public bool? IsActive { get; init; }
+    public string? AccessCode { get; init; }
 }

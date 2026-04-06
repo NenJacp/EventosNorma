@@ -13,6 +13,13 @@ public class StateRepository : IStateRepository
 
     public async Task<State?> GetByIdAsync(int id) => await _context.States.FindAsync(id);
 
+    public async Task<IEnumerable<State>> GetAllAsync(bool onlyActive = true)
+    {
+        var query = _context.States.AsQueryable();
+        if (onlyActive) query = query.Where(s => s.IsActive);
+        return await query.ToListAsync();
+    }
+
     public async Task<IEnumerable<State>> GetByCountryIdAsync(int countryId, bool onlyActive = true)
     {
         var query = _context.States.Where(s => s.CountryId == countryId);

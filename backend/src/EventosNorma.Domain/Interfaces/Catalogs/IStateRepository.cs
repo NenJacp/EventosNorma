@@ -5,6 +5,7 @@ namespace EventosNorma.Domain.Interfaces;
 public interface IStateRepository
 {
     Task<State?> GetByIdAsync(int id);
+    Task<IEnumerable<State>> GetAllAsync(bool onlyActive = true);
     Task<IEnumerable<State>> GetByCountryIdAsync(int countryId, bool onlyActive = true);
     Task AddAsync(State state);
     Task UpdateAsync(State state);

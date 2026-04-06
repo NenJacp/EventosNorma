@@ -15,6 +15,8 @@ public partial class User : IAuditableEntity
     [GeneratedRegex(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$")]
     private static partial Regex NameRegex();
 
+    public const string DefaultProfileImage = "/uploads/users/defaultprofile.png";
+
     // 1. Identidad
     public int Id { get; private set; }
 
@@ -23,7 +25,7 @@ public partial class User : IAuditableEntity
     public string LastName { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
     public string PasswordHash { get; private set; } = string.Empty;
-    public string? ProfileImageUrl { get; private set; }
+    public string? ProfileImageUrl { get; private set; } = DefaultProfileImage;
     public bool EmailVerified { get; private set; } = false;
 
     // 3. Estado Lógico
@@ -38,9 +40,9 @@ public partial class User : IAuditableEntity
     public DateTime? UpdatedAt { get; private set; }
 
     // 5. Navegación
-    public ICollection<EventMember> EventMemberships { get; private set; } = [];
-    public ICollection<UserToken> Tokens { get; private set; } = [];
-    public ICollection<EventComment> Comments { get; private set; } = [];
+    public ICollection<EventMember> EventMemberships { get; private set; } = new List<EventMember>();
+    public ICollection<UserToken> Tokens { get; private set; } = new List<UserToken>();
+    public ICollection<EventComment> Comments { get; private set; } = new List<EventComment>();
 
     // --- Constructor ---
     private User() { }
@@ -63,13 +65,26 @@ public partial class User : IAuditableEntity
             IsActive = true,
             IsBanned = false,
             EmailVerified = false,
+            ProfileImageUrl = DefaultProfileImage,
             CreatedAt = DateTime.UtcNow
         };
     }
 
     // --- Métodos de Cambio de Estado ---
     public void VerifyEmail() => EmailVerified = true;
-    public void UpdateProfileImage(string? imageUrl) => ProfileImageUrl = imageUrl;
+    
+    public void UpdateProfileImage(string imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl)) throw new ArgumentException("La URL de la imagen no puede estar vacía.");
+        ProfileImageUrl = imageUrl;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RemoveProfileImage()
+    {
+        ProfileImageUrl = DefaultProfileImage;
+        UpdatedAt = DateTime.UtcNow;
+    }
 
     public void Deactivate()
     {

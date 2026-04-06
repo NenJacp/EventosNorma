@@ -19,6 +19,7 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .IsRequired()
             .HasConversion<int>();
 
+        builder.Property(e => e.AccessCode).HasMaxLength(50);
         builder.Property(e => e.ImageUrl).HasMaxLength(500);
         builder.Property(e => e.RequiresApproval).HasDefaultValue(false);
 

@@ -16,4 +16,5 @@ public record EventViewModel(
     EventStatus Status,
     int MaxCapacity,
     bool IsPrivate,
+    string? AccessCode,
     bool IsActive);

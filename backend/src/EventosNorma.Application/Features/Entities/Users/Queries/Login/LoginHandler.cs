@@ -39,6 +39,6 @@ public class LoginHandler
 
         httpContextAccessor.HttpContext?.Response.Cookies.Append("jwt", token, cookieOptions);
 
-        return new LoginViewModel(user.Id, user.FirstName, user.LastName, user.Email);
+        return new LoginViewModel(user.Id, user.FirstName, user.LastName, user.Email, user.Role.ToString());
     }
 }

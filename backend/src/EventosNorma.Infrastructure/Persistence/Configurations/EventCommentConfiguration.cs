@@ -13,6 +13,7 @@ public class EventCommentConfiguration : IEntityTypeConfiguration<EventComment>
 
         builder.Property(e => e.Content).IsRequired().HasMaxLength(1000);
         builder.Property(e => e.IsActive).HasDefaultValue(true);
+        builder.Property(e => e.IsEdited).HasDefaultValue(false);
         builder.Property(e => e.CreatedAt).IsRequired();
         builder.Property(e => e.UpdatedAt);
 
@@ -25,5 +26,10 @@ public class EventCommentConfiguration : IEntityTypeConfiguration<EventComment>
             .WithMany(ev => ev.Comments)
             .HasForeignKey(e => e.EventId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(e => e.ParentComment)
+            .WithMany(c => c.Replies)
+            .HasForeignKey(e => e.ParentCommentId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

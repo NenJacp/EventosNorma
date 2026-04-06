@@ -15,6 +15,8 @@ public class UserTokenConfiguration : IEntityTypeConfiguration<UserToken>
         builder.Property(e => e.Type).IsRequired().HasConversion<int>();
         builder.Property(e => e.ExpiresAt).IsRequired();
         builder.Property(e => e.IsUsed).HasDefaultValue(false);
+        builder.Property(e => e.RevokedAt);
+        builder.Property(e => e.ReplacedByToken).HasMaxLength(500);
 
         builder.HasOne(e => e.User)
             .WithMany(u => u.Tokens)

@@ -59,6 +59,7 @@ public class EventRepository : IEventRepository
         DateTime? minCreatedAt = null,
         bool? onlyAvailable = null,
         bool? isActive = null,
+        string? accessCode = null,
         string? sortBy = null,
         bool isAscending = true)
     {
@@ -67,7 +68,22 @@ public class EventRepository : IEventRepository
             .Include(e => e.EventCategory)
             .Include(e => e.EventType)
             .Include(e => e.Creator)
+            .Include(e => e.Members)
             .AsQueryable();
+
+        // 0. Privacidad y Access Code
+        // Si se provee AccessCode, se busca ignorando si es privado.
+        // Si NO se provee, la aplicación decide antes de llamar a este repositorio,
+        // pero podemos agregar la capa de seguridad de que los privados no se muestran a menos que:
+        // a) El caller haya enviado explícitamente accessCode.
+        // b) El query indique incluir privados por otra forma. Como no lo sabemos aquí puramente en el repositorio sin romper la abstracción,
+        // confiaremos en que la aplicación mandará solo eventos pertinentes o que en un rediseño agregamos currentUserService aquí.
+        // Para simplificar, si no trae AccessCode, por ahora no filtramos IsPrivate porque el Admin necesita verlos.
+        // Si se envía AccessCode, debe hacer match:
+        if (!string.IsNullOrWhiteSpace(accessCode))
+        {
+            query = query.Where(e => e.AccessCode == accessCode);
+        }
 
         // 1. Filtrado por Estado Activo
         if (isActive.HasValue)

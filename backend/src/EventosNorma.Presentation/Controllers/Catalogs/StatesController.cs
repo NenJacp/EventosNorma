@@ -1,3 +1,4 @@
+using EventosNorma.Application.Common.Models;
 using EventosNorma.Application.Features.Catalogs.State.Commands;
 using EventosNorma.Application.Features.Catalogs.State.Queries;
 using EventosNorma.Application.Features.Catalogs.State.ViewModels;
@@ -18,11 +19,18 @@ public class StatesController : ControllerBase
         _bus = bus;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var items = await _bus.InvokeAsync<IEnumerable<StateViewModel>>(new GetStatesQuery());
+        return Ok(ApiResponse<IEnumerable<StateViewModel>>.Ok(items));
+    }
+
     [HttpGet("country/{countryId}")]
     public async Task<IActionResult> GetByCountry(int countryId)
     {
         var items = await _bus.InvokeAsync<IEnumerable<StateViewModel>>(new GetStatesByCountryQuery(countryId));
-        return Ok(items);
+        return Ok(ApiResponse<IEnumerable<StateViewModel>>.Ok(items));
     }
 
     [Authorize(Roles = "Admin")]
@@ -30,7 +38,7 @@ public class StatesController : ControllerBase
     public async Task<IActionResult> Create(CreateStateCommand command)
     {
         var id = await _bus.InvokeAsync<int>(command);
-        return Created($"/api/states/{id}", new { id });
+        return Created($"/api/states/{id}", ApiResponse<object>.Ok(new { id }));
     }
 
     [Authorize(Roles = "Admin")]
@@ -39,6 +47,6 @@ public class StatesController : ControllerBase
     {
         if (id != command.Id) return BadRequest();
         var success = await _bus.InvokeAsync<bool>(command);
-        return success ? Ok() : NotFound();
+        return success ? Ok(ApiResponse<object>.Ok(null, "Estado actualizado")) : NotFound();
     }
 }

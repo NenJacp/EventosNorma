@@ -17,6 +17,7 @@ public class Event : IAuditableEntity
     public DateTime EndDate { get; private set; }
     public string LocationDetail { get; private set; } = "Sin detalles";
     public bool IsPrivate { get; private set; }
+    public string? AccessCode { get; private set; }
     public int MaxCapacity { get; private set; }
     public string? ImageUrl { get; private set; }
     public bool RequiresApproval { get; private set; } = false;
@@ -69,6 +70,7 @@ public class Event : IAuditableEntity
             EventTypeId = eventTypeId,
             MaxCapacity = maxCapacity,
             IsPrivate = isPrivate,
+            AccessCode = isPrivate ? GenerateAccessCode() : null,
             RequiresApproval = requiresApproval,
             CreatedById = createdById,
             Status = EventStatus.Open,
@@ -80,6 +82,25 @@ public class Event : IAuditableEntity
     // --- Métodos de Cambio de Estado ---
     public void UpdateImage(string? imageUrl) => ImageUrl = imageUrl;
     public void ChangeApprovalRequirement(bool requiresApproval) => RequiresApproval = requiresApproval;
+
+    public void CancelEvent()
+    {
+        if (Status == EventStatus.Cancelled) return;
+        Status = EventStatus.Cancelled;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RegenerateAccessCode()
+    {
+        if (!IsPrivate) throw new InvalidOperationException("Solo los eventos privados pueden tener código de acceso.");
+        AccessCode = GenerateAccessCode();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    private static string GenerateAccessCode()
+    {
+        return Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
+    }
 
     public void Deactivate()
     {
@@ -169,6 +190,14 @@ public class Event : IAuditableEntity
     {
         if (IsPrivate == isPrivate) return;
         IsPrivate = isPrivate;
+        if (isPrivate)
+        {
+            AccessCode ??= GenerateAccessCode();
+        }
+        else
+        {
+            AccessCode = null;
+        }
     }
 
     public void ChangeCapacity(int newMaxCapacity)

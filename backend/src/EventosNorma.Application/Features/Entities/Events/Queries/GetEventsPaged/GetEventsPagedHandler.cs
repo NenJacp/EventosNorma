@@ -31,6 +31,7 @@ public class GetEventsPagedHandler
             query.MinCreatedAt,
             query.OnlyAvailable,
             isActiveFilter,
+            query.AccessCode,
             query.SortBy,
             query.IsAscending);
 
@@ -48,6 +49,8 @@ public class GetEventsPagedHandler
             e.Status,
             e.MaxCapacity,
             e.IsPrivate,
+            // Regla: Solo el creador, un miembro, o el admin pueden ver el AccessCode. O si lo buscaron específicamente por ese código.
+            (currentUserService.IsAdmin || e.CreatedById == currentUserService.UserId || e.Members.Any(m => m.UserId == currentUserService.UserId && m.ExitedAt == null) || query.AccessCode == e.AccessCode) ? e.AccessCode : null,
             e.IsActive));
 
         return new PagedList<EventViewModel>(

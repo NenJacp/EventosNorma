@@ -1,3 +1,4 @@
+using EventosNorma.Application.Common.Models;
 using EventosNorma.Application.Features.Catalogs.City.Commands;
 using EventosNorma.Application.Features.Catalogs.City.Queries;
 using EventosNorma.Application.Features.Catalogs.City.ViewModels;
@@ -18,11 +19,18 @@ public class CitiesController : ControllerBase
         _bus = bus;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var items = await _bus.InvokeAsync<IEnumerable<CityViewModel>>(new GetCitiesQuery());
+        return Ok(ApiResponse<IEnumerable<CityViewModel>>.Ok(items));
+    }
+
     [HttpGet("state/{stateId}")]
     public async Task<IActionResult> GetByState(int stateId)
     {
         var items = await _bus.InvokeAsync<IEnumerable<CityViewModel>>(new GetCitiesByStateQuery(stateId));
-        return Ok(items);
+        return Ok(ApiResponse<IEnumerable<CityViewModel>>.Ok(items));
     }
 
     [Authorize(Roles = "Admin")]
@@ -30,7 +38,7 @@ public class CitiesController : ControllerBase
     public async Task<IActionResult> Create(CreateCityCommand command)
     {
         var id = await _bus.InvokeAsync<int>(command);
-        return Created($"/api/cities/{id}", new { id });
+        return Created($"/api/cities/{id}", ApiResponse<object>.Ok(new { id }));
     }
 
     [Authorize(Roles = "Admin")]
@@ -39,6 +47,6 @@ public class CitiesController : ControllerBase
     {
         if (id != command.Id) return BadRequest();
         var success = await _bus.InvokeAsync<bool>(command);
-        return success ? Ok() : NotFound();
+        return success ? Ok(ApiResponse<object>.Ok(null, "Ciudad actualizada")) : NotFound();
     }
 }

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using EventosNorma.Application.Common.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,62 +35,43 @@ public class ExceptionHandlingMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var code = HttpStatusCode.InternalServerError;
-        var title = "Server Error";
-        var detail = _env.IsDevelopment() ? exception.Message : "Ocurrió un error inesperado en el servidor.";
-        var type = "https://tools.ietf.org/html/rfc7231#section-6.6.1";
-        IDictionary<string, string[]>? validationErrors = null;
+        var message = "Ocurrió un error inesperado en el servidor.";
+        List<string> errors = new List<string>();
 
         if (exception is ValidationException validationException)
         {
             code = HttpStatusCode.BadRequest;
-            title = "Validation Error";
-            detail = "Uno o más errores de validación han ocurrido.";
-            type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
-            validationErrors = validationException.Errors
-                .GroupBy(e => e.PropertyName)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(e => e.ErrorMessage).ToArray()
-                );
+            message = "Error de validación";
+            errors = validationException.Errors.Select(e => e.ErrorMessage).ToList();
         }
         else if (exception is EventosNorma.Domain.Exceptions.DomainException || exception is ArgumentException)
         {
             code = HttpStatusCode.BadRequest;
-            title = exception is ArgumentException ? "Argument Error" : "Domain Error";
-            detail = exception.Message;
-            type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
+            message = exception.Message;
+            errors.Add(exception.Message);
         }
         else if (exception is KeyNotFoundException)
         {
             code = HttpStatusCode.NotFound;
-            title = "Not Found";
-            detail = exception.Message;
-            type = "https://tools.ietf.org/html/rfc7231#section-6.5.4";
+            message = exception.Message;
+            errors.Add(exception.Message);
         }
         else if (exception is UnauthorizedAccessException)
         {
             code = HttpStatusCode.Unauthorized;
-            title = "Unauthorized";
-            detail = exception.Message;
-            type = "https://tools.ietf.org/html/rfc7235#section-3.1";
+            message = exception.Message;
+            errors.Add(exception.Message);
+        }
+        else if (_env.IsDevelopment())
+        {
+            message = exception.Message;
+            errors.Add(exception.ToString());
         }
 
-        var problemDetails = new ProblemDetails
-        {
-            Status = (int)code,
-            Title = title,
-            Detail = detail,
-            Type = type,
-            Instance = context.Request.Path
-        };
+        var apiResponse = ApiResponse<object>.Fail(message, errors.Any() ? errors : null);
 
-        if (validationErrors != null)
-        {
-            problemDetails.Extensions["errors"] = validationErrors;
-        }
-
-        var result = JsonSerializer.Serialize(problemDetails);
-        context.Response.ContentType = "application/problem+json";
+        var result = JsonSerializer.Serialize(apiResponse, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)code;
 
         await context.Response.WriteAsync(result);

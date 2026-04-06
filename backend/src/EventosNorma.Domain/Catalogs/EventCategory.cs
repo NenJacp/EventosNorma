@@ -39,6 +39,7 @@ public class EventCategory : IAuditableEntity
         };
     }
 
+    // --- Métodos de Cambio de Estado ---
     public void Deactivate() => IsActive = false;
     public void Activate() => IsActive = true;
 
@@ -64,6 +65,7 @@ public class EventCategory : IAuditableEntity
         }
     }
 
+    // --- Validaciones Privadas ---
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("El nombre de la categoría es requerido.");

@@ -1,3 +1,4 @@
+using EventosNorma.Application.Common.Models;
 using EventosNorma.Application.Features.Catalogs.Country.Commands;
 using EventosNorma.Application.Features.Catalogs.Country.Queries;
 using EventosNorma.Application.Features.Catalogs.Country.ViewModels;
@@ -22,7 +23,7 @@ public class CountriesController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var items = await _bus.InvokeAsync<IEnumerable<CountryViewModel>>(new GetCountriesQuery());
-        return Ok(items);
+        return Ok(ApiResponse<IEnumerable<CountryViewModel>>.Ok(items));
     }
 
     [Authorize(Roles = "Admin")]
@@ -30,7 +31,7 @@ public class CountriesController : ControllerBase
     public async Task<IActionResult> Create(CreateCountryCommand command)
     {
         var id = await _bus.InvokeAsync<int>(command);
-        return Created($"/api/countries/{id}", new { id });
+        return Created($"/api/countries/{id}", ApiResponse<object>.Ok(new { id }));
     }
 
     [Authorize(Roles = "Admin")]
@@ -39,6 +40,6 @@ public class CountriesController : ControllerBase
     {
         if (id != command.Id) return BadRequest();
         var success = await _bus.InvokeAsync<bool>(command);
-        return success ? Ok() : NotFound();
+        return success ? Ok(ApiResponse<object>.Ok(null, "País actualizado")) : NotFound();
     }
 }

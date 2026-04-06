@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthShell from "@/components/AuthShell";
@@ -8,7 +8,7 @@ import AlertMessage from "@/components/AlertMessage";
 import { apiFetch, ApiError } from "@/lib/api";
 import type { VerifyEmailRequest, VerifyEmailResponse } from "@/types/auth";
 
-export default function VerifyEmailPage() {
+function VerifyEmailForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -87,14 +87,7 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <AuthShell
-      title="Verificar correo"
-      description="Escribe tu correo y el código de autenticación"
-      sideTitle="Verifica tu correo para activar tu cuenta."
-      sideText="Ingresa el código que te fue enviado por correo electrónico para completar el acceso al sistema."
-      sideFooter="Después de verificar tu cuenta podrás iniciar sesión normalmente."
-      accent="indigo"
-    >
+    <>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -145,6 +138,23 @@ export default function VerifyEmailPage() {
           Ir a iniciar sesión
         </Link>
       </p>
+    </>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <AuthShell
+      title="Verificar correo"
+      description="Escribe tu correo y el código de autenticación"
+      sideTitle="Verifica tu correo para activar tu cuenta."
+      sideText="Ingresa el código que te fue enviado por correo electrónico para completar el acceso al sistema."
+      sideFooter="Después de verificar tu cuenta podrás iniciar sesión normalmente."
+      accent="indigo"
+    >
+      <Suspense fallback={<p className="text-sm text-gray-500">Cargando...</p>}>
+        <VerifyEmailForm />
+      </Suspense>
     </AuthShell>
   );
 }

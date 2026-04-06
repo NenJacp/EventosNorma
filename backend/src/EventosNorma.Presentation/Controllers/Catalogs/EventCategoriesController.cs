@@ -1,3 +1,4 @@
+using EventosNorma.Application.Common.Models;
 using EventosNorma.Application.Features.Catalogs.EventCategory.Commands;
 using EventosNorma.Application.Features.Catalogs.EventCategory.Queries;
 using EventosNorma.Application.Features.Catalogs.EventCategory.ViewModels;
@@ -22,7 +23,7 @@ public class EventCategoriesController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var items = await _bus.InvokeAsync<IEnumerable<EventCategoryViewModel>>(new GetEventCategoriesQuery());
-        return Ok(items);
+        return Ok(ApiResponse<IEnumerable<EventCategoryViewModel>>.Ok(items));
     }
 
     [Authorize(Roles = "Admin")]
@@ -30,7 +31,7 @@ public class EventCategoriesController : ControllerBase
     public async Task<IActionResult> Create(CreateEventCategoryCommand command)
     {
         var id = await _bus.InvokeAsync<int>(command);
-        return Created($"/api/eventcategories/{id}", new { id });
+        return Created($"/api/eventcategories/{id}", ApiResponse<object>.Ok(new { id }));
     }
 
     [Authorize(Roles = "Admin")]
@@ -39,6 +40,6 @@ public class EventCategoriesController : ControllerBase
     {
         if (id != command.Id) return BadRequest();
         var success = await _bus.InvokeAsync<bool>(command);
-        return success ? Ok() : NotFound();
+        return success ? Ok(ApiResponse<object>.Ok(null, "Categoría actualizada")) : NotFound();
     }
 }

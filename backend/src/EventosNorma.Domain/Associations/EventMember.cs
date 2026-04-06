@@ -7,15 +7,17 @@ public class EventMember
     // 1. Identidad
     public int Id { get; private set; }
 
-    // 2. FKs
+    // 2. Estado Lógico
+    public DateTime? ExitedAt { get; private set; }
+
+    // 3. Relaciones / FKs
     public int EventId { get; private set; }
     public int UserId { get; private set; }
 
-    // 3. Fechas
+    // 4. Auditoría
     public DateTime JoinedAt { get; private set; }
-    public DateTime? ExitedAt { get; private set; }
 
-    // 4. Navegación
+    // 5. Navegación
     public Event Event { get; private set; } = null!;
     public User User { get; private set; } = null!;
 

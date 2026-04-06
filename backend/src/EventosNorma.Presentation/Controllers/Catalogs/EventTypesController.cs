@@ -1,3 +1,4 @@
+using EventosNorma.Application.Common.Models;
 using EventosNorma.Application.Features.Catalogs.EventType.Commands;
 using EventosNorma.Application.Features.Catalogs.EventType.Queries;
 using EventosNorma.Application.Features.Catalogs.EventType.ViewModels;
@@ -22,7 +23,7 @@ public class EventTypesController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var items = await _bus.InvokeAsync<IEnumerable<EventTypeViewModel>>(new GetEventTypesQuery());
-        return Ok(items);
+        return Ok(ApiResponse<IEnumerable<EventTypeViewModel>>.Ok(items));
     }
 
     [Authorize(Roles = "Admin")]
@@ -30,7 +31,7 @@ public class EventTypesController : ControllerBase
     public async Task<IActionResult> Create(CreateEventTypeCommand command)
     {
         var id = await _bus.InvokeAsync<int>(command);
-        return Created($"/api/eventtypes/{id}", new { id });
+        return Created($"/api/eventtypes/{id}", ApiResponse<object>.Ok(new { id }));
     }
 
     [Authorize(Roles = "Admin")]
@@ -39,6 +40,6 @@ public class EventTypesController : ControllerBase
     {
         if (id != command.Id) return BadRequest();
         var success = await _bus.InvokeAsync<bool>(command);
-        return success ? Ok() : NotFound();
+        return success ? Ok(ApiResponse<object>.Ok(null, "Tipo de evento actualizado")) : NotFound();
     }
 }
