@@ -15,8 +15,8 @@ else if (File.Exists("../.env")) DotNetEnv.Env.Load("../.env");
 // Resincronizar la configuración para incluir las variables cargadas desde .env
 builder.Configuration.AddEnvironmentVariables();
 
-// Forzar puerto 80 para compatibilidad con Docker Compose
-builder.WebHost.UseUrls("http://*:80");
+// Forzar puerto 8080 para compatibilidad con .NET 8+ y Docker (usuario no root)
+builder.WebHost.UseUrls("http://*:8080");
 
 builder
     .AddApplicationServices()
