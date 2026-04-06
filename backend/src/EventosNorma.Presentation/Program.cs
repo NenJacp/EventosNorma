@@ -32,10 +32,11 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+// Temporalmente deshabilitado para despliegue sin reverse proxy con SSL
+// if (!app.Environment.IsDevelopment())
+// {
+//     app.UseHttpsRedirection();
+// }
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
