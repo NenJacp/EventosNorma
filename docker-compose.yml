@@ -23,7 +23,7 @@ services:
     env_file:
       - .env
     ports:
-      - "5000:80"
+      - "5000:8080"
     depends_on:
       - db
     volumes:
@@ -43,7 +43,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     ports:
-      - "3000:3000"
+      - "3001:3001"
     depends_on:
       - backend
     networks:

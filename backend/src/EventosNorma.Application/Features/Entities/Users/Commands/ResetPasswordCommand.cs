@@ -3,7 +3,7 @@ using EventosNorma.Domain.Interfaces;
 
 namespace EventosNorma.Application.Features.Entities.Users.Commands;
 
-public record ResetPasswordCommand(string Email, string Token, string NewPassword);
+public record ResetPasswordCommand(string Email, string Code, string NewPassword);
 
 public class ResetPasswordHandler
 {
@@ -13,15 +13,15 @@ public class ResetPasswordHandler
         if (user == null || !user.IsActive)
             throw new ArgumentException("El enlace de restablecimiento es inválido o ha expirado.");
 
-        var token = await tokenRepository.GetByTokenAsync(command.Token, UserTokenType.PasswordReset);
+        var code = await tokenRepository.GetByCodeAsync(command.Code, UserTokenType.PasswordReset);
         
-        if (token == null || !token.IsActive || token.UserId != user.Id)
+        if (code == null || !code.IsActive || code.UserId != user.Id)
             throw new ArgumentException("El enlace de restablecimiento es inválido o ha expirado.");
 
         var newHash = passwordHasher.Hash(command.NewPassword);
         user.ChangePassword(newHash);
         
-        token.Use();
+        code.Use();
         
         await userRepository.UpdateAsync(user);
         await userRepository.SaveChangesAsync(); 

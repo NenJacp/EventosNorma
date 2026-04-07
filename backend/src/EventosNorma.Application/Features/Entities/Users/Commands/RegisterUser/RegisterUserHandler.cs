@@ -29,7 +29,7 @@ public class RegisterUserHandler
         await userRepository.SaveChangesAsync(); // Guardamos para tener el ID del usuario
 
         // Generar Token de Verificación (ejemplo simple de 6 caracteres)
-        var code = new Random().Next(100000, 999999).ToString();
+        var code = new Random().Next(10000000, 99999999).ToString();
         var token = UserToken.Create(user.Id, code, UserTokenType.EmailVerification);
         
         await tokenRepository.AddAsync(token);

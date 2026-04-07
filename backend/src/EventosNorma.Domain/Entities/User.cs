@@ -15,7 +15,11 @@ public partial class User : IAuditableEntity
     [GeneratedRegex(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$")]
     private static partial Regex NameRegex();
 
+    [GeneratedRegex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$")]
+    private static partial Regex PasswordRegex();
+
     public const string DefaultProfileImage = "/uploads/users/defaultprofile.png";
+    public const string PasswordRequirementsMessage = "La contraseña debe tener al menos 8 caracteres, incluir una letra mayúscula, una letra minúscula, un número y un carácter especial.";
 
     // 1. Identidad
     public int Id { get; private set; }
@@ -176,6 +180,12 @@ public partial class User : IAuditableEntity
     {
         if (string.IsNullOrWhiteSpace(email)) throw new ArgumentException("El email es requerido.");
         if (!EmailRegex().IsMatch(email)) throw new ArgumentException("El formato del email es inválido.");
+    }
+
+    public static bool IsValidPasswordFormat(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password)) return false;
+        return PasswordRegex().IsMatch(password);
     }
 
     private static void ValidatePasswordHash(string hash)

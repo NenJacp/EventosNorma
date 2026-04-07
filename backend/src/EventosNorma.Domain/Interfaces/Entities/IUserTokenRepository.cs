@@ -5,7 +5,7 @@ namespace EventosNorma.Domain.Interfaces;
 
 public interface IUserTokenRepository
 {
-    Task<UserToken?> GetByTokenAsync(string token, UserTokenType type);
+    Task<UserToken?> GetByCodeAsync(string code, UserTokenType type);
     Task AddAsync(UserToken token);
     Task SaveChangesAsync();
 }

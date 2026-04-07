@@ -15,8 +15,8 @@ else if (File.Exists("../.env")) DotNetEnv.Env.Load("../.env");
 // Resincronizar la configuración para incluir las variables cargadas desde .env
 builder.Configuration.AddEnvironmentVariables();
 
-// Forzar puerto 80 para compatibilidad con Docker Compose
-builder.WebHost.UseUrls("http://*:80");
+// Forzar puerto 8080 para compatibilidad con .NET 8+ y Docker (usuario no root)
+builder.WebHost.UseUrls("http://*:8080");
 
 builder
     .AddApplicationServices()
@@ -27,16 +27,16 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Remover restricción de entorno para asegurar que Swagger cargue en cualquier ambiente
+// durante la etapa de pruebas/despliegue
+app.UseSwagger();
+app.UseSwaggerUI();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+// Temporalmente deshabilitado para despliegue sin reverse proxy con SSL
+// if (!app.Environment.IsDevelopment())
+// {
+//     app.UseHttpsRedirection();
+// }
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();

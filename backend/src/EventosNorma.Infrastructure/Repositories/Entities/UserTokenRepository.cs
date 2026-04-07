@@ -15,11 +15,11 @@ public class UserTokenRepository : IUserTokenRepository
         _context = context;
     }
 
-    public async Task<UserToken?> GetByTokenAsync(string token, UserTokenType type)
+    public async Task<UserToken?> GetByCodeAsync(string code, UserTokenType type)
     {
         return await _context.UserTokens
             .Include(ut => ut.User)
-            .FirstOrDefaultAsync(ut => ut.Token == token && ut.Type == type && !ut.IsUsed);
+            .FirstOrDefaultAsync(ut => ut.Code == code && ut.Type == type && !ut.IsUsed);
     }
 
     public async Task AddAsync(UserToken token)
