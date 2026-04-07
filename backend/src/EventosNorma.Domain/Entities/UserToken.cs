@@ -8,7 +8,7 @@ public class UserToken
     public int Id { get; private set; }
 
     // 2. Datos
-    public string Token { get; private set; } = string.Empty;
+    public string Code { get; private set; } = string.Empty;
     public UserTokenType Type { get; private set; }
     public DateTime ExpiresAt { get; private set; }
 
@@ -29,12 +29,12 @@ public class UserToken
     private UserToken() { }
 
     // --- Fábrica (Factory) ---
-    public static UserToken Create(int userId, string token, UserTokenType type, int expirationHours = 24)
+    public static UserToken Create(int userId, string code, UserTokenType type, int expirationHours = 24)
     {
         return new UserToken
         {
             UserId = userId,
-            Token = token,
+            Code = code,
             Type = type,
             ExpiresAt = DateTime.UtcNow.AddHours(expirationHours),
             IsUsed = false

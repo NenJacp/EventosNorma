@@ -9,21 +9,21 @@ public class VerifyEmailHandler
         IUserRepository userRepository, 
         IUserTokenRepository tokenRepository)
     {
-        var token = await tokenRepository.GetByTokenAsync(command.Token, UserTokenType.EmailVerification);
+        var code = await tokenRepository.GetByCodeAsync(command.Code, UserTokenType.EmailVerification);
 
-        if (token == null || token.User.Email != command.Email)
+        if (code == null || code.User.Email != command.Email)
         {
             throw new InvalidOperationException("Código de verificación inválido.");
         }
 
-        if (token.IsExpired)
+        if (code.IsExpired)
         {
             throw new InvalidOperationException("El código de verificación ha expirado.");
         }
 
-        var user = token.User;
+        var user = code.User;
         user.VerifyEmail();
-        token.Use();
+        code.Use();
 
         await userRepository.UpdateAsync(user);
         await userRepository.SaveChangesAsync();

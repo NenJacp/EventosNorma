@@ -1,6 +1,7 @@
 using EventosNorma.Domain.Entities;
 using EventosNorma.Domain.Enums;
 using EventosNorma.Domain.Interfaces;
+using EventosNorma.Domain.Exceptions;
 
 namespace EventosNorma.Application.Features.Entities.Users.Commands;
 
@@ -12,23 +13,18 @@ public class ForgotPasswordHandler
     {
         var user = await userRepository.GetByEmailAsync(command.Email);
         
-        // Para evitar ataques de enumeración de usuarios, siempre retornamos "éxito"
         if (user == null || !user.IsActive)
-            return true;
+            throw new UserNotFoundException(command.Email);
 
-        var tokenString = Guid.NewGuid().ToString("N");
-        var token = UserToken.Create(user.Id, tokenString, UserTokenType.PasswordReset, 1); // 1 hora de expiración
+        var code = new Random().Next(10000000, 99999999).ToString();
+        var token = UserToken.Create(user.Id, code, UserTokenType.PasswordReset, 1);
         
         await tokenRepository.AddAsync(token);
         await tokenRepository.SaveChangesAsync();
 
-        var resetUrl = $"http://localhost:3000/reset-password?token={tokenString}&email={command.Email}";
+        var body = $"<h1>Hola {user.FirstName}</h1><p>Tu código de verificación es: <b>{code}</b></p><p>Este código expira en 1 hora.</p>";
         
-        var message = $"Hola {user.FirstName}, has solicitado restablecer tu contraseña.\n\n" +
-                      $"Haz clic en el siguiente enlace para crear una nueva contraseña:\n{resetUrl}\n\n" +
-                      "Si no fuiste tú, puedes ignorar este mensaje de forma segura.";
-        
-        await emailService.SendEmailAsync(user.Email, "Restablecer contraseña", message);
+        await emailService.SendEmailAsync(user.Email, "Restablecer contraseña - EventosNorma", body);
         
         return true;
     }
