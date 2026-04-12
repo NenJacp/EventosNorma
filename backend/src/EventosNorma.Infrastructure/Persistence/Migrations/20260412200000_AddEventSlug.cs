@@ -21,13 +21,13 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
 
             migrationBuilder.Sql(@"
                 UPDATE ""events"" 
-                SET ""Slug"" = LOWER(REPLACE(""title"", ' ', '-')) || '-' || ""id""::TEXT
+                SET ""Slug"" = LOWER(REPLACE(""Title"", ' ', '-')) || '-' || ""Id""::TEXT
                 WHERE ""Slug"" IS NULL;
             ");
 
             migrationBuilder.Sql(@"
                 UPDATE ""events"" 
-                SET ""Slug"" = 'evento-' || ""id""::TEXT
+                SET ""Slug"" = 'evento-' || ""Id""::TEXT
                 WHERE ""Slug"" IS NULL;
             ");
 

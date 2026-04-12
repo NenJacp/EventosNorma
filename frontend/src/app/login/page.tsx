@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import AuthShell from "@/components/AuthShell";
 import PasswordInput from "@/components/PasswordInput";
 import { apiFetch, ApiError } from "@/lib/api";
-import { saveSession } from "@/lib/auth";
 import { toast } from "@/lib/toast";
 import type { LoginRequest, LoginResponse } from "@/types/auth";
 
@@ -53,18 +52,6 @@ export default function LoginPage() {
       const data = await apiFetch<LoginResponse>("/api/Users/login", {
         method: "POST",
         body: JSON.stringify(form),
-      });
-
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
-      }
-
-      saveSession({
-        token: data?.token,
-        email: data?.email || form.email,
-        firstName: data?.firstName || "",
-        lastName: data?.lastName || "",
-        role: data?.role || "User",
       });
 
       toast.success(`Bienvenido, ${data?.firstName || "usuario"}`);

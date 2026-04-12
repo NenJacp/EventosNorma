@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch, ApiError, API_URL } from "@/lib/api";
-import { getSession, saveSession } from "@/lib/auth";
 import { toast } from "@/lib/toast";
 import { User, Camera, Loader2 } from "lucide-react";
 
@@ -46,11 +45,6 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    const session = getSession();
-    if (!session) {
-      router.push("/login");
-      return;
-    }
     fetchUser();
   }, [router]);
 
@@ -72,13 +66,6 @@ export default function ProfilePage() {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
         }),
-      });
-
-      const session = getSession();
-      saveSession({
-        ...session,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
       });
 
       setUser({ ...user, firstName, lastName });
@@ -123,12 +110,6 @@ export default function ProfilePage() {
 
       setPreviewImage(imageUrl);
       setUser({ ...user, profileImage: imageUrl });
-
-      const session = getSession();
-      saveSession({
-        ...session,
-        profileImage: imageUrl,
-      });
 
       toast.success("Foto de perfil actualizada");
     } catch (err) {

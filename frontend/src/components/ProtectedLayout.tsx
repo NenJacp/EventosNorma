@@ -16,7 +16,6 @@ import {
   User
 } from "lucide-react";
 import { apiFetch, API_URL } from "@/lib/api";
-import { clearSession, getSession } from "@/lib/auth";
 import { useTheme, getThemeClasses } from "@/lib/theme";
 
 interface SidebarProps {
@@ -65,13 +64,6 @@ export default function ProtectedLayout({ children }: SidebarProps) {
   const theme = getThemeClasses("light"); 
 
   useEffect(() => {
-    const session = getSession();
-    if (!session) {
-      router.push("/login");
-      return;
-    }
-    
-    // Fetch fresh user data including profile image
     const fetchUser = async () => {
       try {
         const res = await apiFetch<{
@@ -79,26 +71,19 @@ export default function ProtectedLayout({ children }: SidebarProps) {
           firstName: string;
           lastName: string;
           email: string;
+          role?: string;
           profileImage?: string;
         }>("/api/Users/currentUser");
+        
         setUser({
-          ...session,
           firstName: res.firstName,
           lastName: res.lastName,
           email: res.email,
+          role: res.role,
           profileImage: res.profileImage,
         });
       } catch {
-        // Fallback to session data
-        setUser(
-          session as {
-            firstName: string;
-            lastName: string;
-            email: string;
-            role?: string;
-            profileImage?: string;
-          }
-        );
+        router.push("/login");
       }
     };
     
@@ -112,7 +97,6 @@ export default function ProtectedLayout({ children }: SidebarProps) {
     } catch (err) {
       console.error(err);
     } finally {
-      clearSession();
       router.push("/login");
     }
   };

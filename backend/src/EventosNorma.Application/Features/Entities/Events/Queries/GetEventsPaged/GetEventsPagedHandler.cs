@@ -14,6 +14,12 @@ public class GetEventsPagedHandler
         // Si no es admin, forzar IsActive = true
         bool? isActiveFilter = currentUserService.IsAdmin ? query.IsActive : true;
 
+        int? excludeCreatedById = query.ExcludeCreatedById;
+        if (!currentUserService.IsAdmin && query.CreatedById == null && query.JoinedByUserId == null)
+        {
+            excludeCreatedById = currentUserService.UserId;
+        }
+
         var (items, totalCount) = await eventRepository.GetPagedAsync(
             query.PageNumber,
             query.PageSize,
@@ -25,7 +31,7 @@ public class GetEventsPagedHandler
             query.EventCategoryId,
             query.EventTypeId,
             query.CreatedById,
-            query.ExcludeCreatedById,
+            excludeCreatedById,
             query.JoinedByUserId,
             query.StartDate,
             query.EndDate,
