@@ -6,11 +6,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/uploads/:path*',
-        destination: 'http://backend:8080/uploads/:path*',
+        destination: 'http://backend:80/uploads/:path*',
       },
       {
         source: '/api/:path*',
-        destination: 'http://backend:8080/api/:path*',
+        destination: 'http://backend:80/api/:path*',
       },
     ];
   },
