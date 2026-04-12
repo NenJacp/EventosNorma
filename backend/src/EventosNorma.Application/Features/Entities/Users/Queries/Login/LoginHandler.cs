@@ -28,12 +28,15 @@ public class LoginHandler
 
         var token = jwtProvider.Generate(user);
 
+        var request = httpContextAccessor.HttpContext?.Request;
+        var isHttps = request?.IsHttps ?? false;
+
         // Configurar la Cookie
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, 
-            SameSite = SameSiteMode.None,
+            Secure = isHttps, 
+            SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
             Expires = DateTime.UtcNow.AddHours(2)
         };
 

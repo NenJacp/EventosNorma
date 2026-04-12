@@ -51,7 +51,15 @@ public class UsersController : ControllerBase
     [HttpPost("logout")]
     public IActionResult Logout([FromServices] IHttpContextAccessor httpContextAccessor)
     {
-        httpContextAccessor.HttpContext?.Response.Cookies.Delete("jwt");
+        var request = httpContextAccessor.HttpContext?.Request;
+        var isHttps = request?.IsHttps ?? false;
+
+        httpContextAccessor.HttpContext?.Response.Cookies.Delete("jwt", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isHttps, 
+            SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax
+        });
         return Ok(ApiResponse<object>.Ok(null, "Sesión cerrada correctamente"));
     }
 
