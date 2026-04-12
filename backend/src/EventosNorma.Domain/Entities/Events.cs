@@ -9,6 +9,7 @@ public class Event : IAuditableEntity
 {
     // 1. Identidad
     public int Id { get; private set; }
+    public string Slug { get; private set; } = string.Empty;
 
     // 2. Datos
     public string Title { get; private set; } = string.Empty;
@@ -48,7 +49,7 @@ public class Event : IAuditableEntity
     private Event() { }
 
     // --- Fábrica (Factory) ---
-    public static Event Create(string title, string? description, DateTime startDate, DateTime endDate, string? locationDetail, int cityId, int eventCategoryId, int eventTypeId, bool isPrivate, int createdById, int maxCapacity, bool requiresApproval = false)
+    public static Event Create(string title, string? description, DateTime startDate, DateTime endDate, string? locationDetail, int cityId, int eventCategoryId, int eventTypeId, bool isPrivate, int createdById, int maxCapacity, bool requiresApproval = false, string? imageUrl = null)
     {
         ValidateTitle(title);
         ValidateDates(startDate, endDate);
@@ -61,6 +62,7 @@ public class Event : IAuditableEntity
         return new Event
         {
             Title = title.Trim(),
+            Slug = GenerateSlug(title),
             Description = !string.IsNullOrWhiteSpace(description) ? description.Trim() : "Sin descripción",
             StartDate = startDate,
             EndDate = endDate,
@@ -75,7 +77,8 @@ public class Event : IAuditableEntity
             CreatedById = createdById,
             Status = EventStatus.Open,
             IsActive = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ImageUrl = imageUrl
         };
     }
 
@@ -100,6 +103,15 @@ public class Event : IAuditableEntity
     private static string GenerateAccessCode()
     {
         return Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
+    }
+
+    private static string GenerateSlug(string title)
+    {
+        var slug = title.Trim().ToLowerInvariant();
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
+        return slug.Trim('-') + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
     }
 
     public void Deactivate()

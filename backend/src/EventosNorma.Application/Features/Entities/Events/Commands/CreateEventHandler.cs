@@ -20,7 +20,9 @@ public class CreateEventHandler
             command.EventTypeId,
             command.IsPrivate,
             creatorId,
-            command.MaxCapacity);
+            command.MaxCapacity,
+            false,
+            command.ImageUrl);
 
         await repository.AddAsync(@event);
         await repository.SaveChangesAsync();

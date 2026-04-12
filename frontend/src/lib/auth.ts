@@ -3,6 +3,8 @@ export interface SessionUser {
   lastName?: string;
   email?: string;
   token?: string;
+  role?: string;
+  profileImage?: string;
 }
 
 const USER_KEY = "eventos_user";

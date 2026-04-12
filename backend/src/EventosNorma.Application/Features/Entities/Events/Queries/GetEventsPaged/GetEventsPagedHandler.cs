@@ -17,6 +17,7 @@ public class GetEventsPagedHandler
         var (items, totalCount) = await eventRepository.GetPagedAsync(
             query.PageNumber,
             query.PageSize,
+            currentUserService.IsAdmin,
             query.Title,
             query.CityId,
             query.StateId,
@@ -38,6 +39,7 @@ public class GetEventsPagedHandler
         var viewModels = items.Select(e => new EventViewModel(
             e.Id,
             e.Title,
+            e.Slug,
             e.Description,
             e.StartDate,
             e.EndDate,
@@ -48,10 +50,12 @@ public class GetEventsPagedHandler
             $"{e.Creator.FirstName} {e.Creator.LastName}",
             e.Status,
             e.MaxCapacity,
+            e.Members.Count(m => m.JoinedAt != null && m.ExitedAt == null),
             e.IsPrivate,
             // Regla: Solo el creador, un miembro, o el admin pueden ver el AccessCode. O si lo buscaron específicamente por ese código.
             (currentUserService.IsAdmin || e.CreatedById == currentUserService.UserId || e.Members.Any(m => m.UserId == currentUserService.UserId && m.ExitedAt == null) || query.AccessCode == e.AccessCode) ? e.AccessCode : null,
-            e.IsActive));
+            e.IsActive,
+            e.ImageUrl));
 
         return new PagedList<EventViewModel>(
             viewModels,

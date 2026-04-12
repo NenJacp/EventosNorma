@@ -27,6 +27,25 @@ public class EventsController : ControllerBase
         return Ok(ApiResponse<PagedList<EventViewModel>>.Ok(response));
     }
 
+    [HttpGet("by-code/{code}")]
+    public async Task<IActionResult> GetByCode(string code)
+    {
+        var query = new GetEventsPagedQuery
+        {
+            AccessCode = code,
+            PageNumber = 1,
+            PageSize = 1
+        };
+
+        var response = await _bus.InvokeAsync<PagedList<EventViewModel>>(query);
+        var @event = response.Items.FirstOrDefault();
+
+        if (@event == null)
+            return NotFound(ApiResponse<object>.Fail("No se encontró un evento con ese código."));
+
+        return Ok(ApiResponse<EventViewModel>.Ok(@event));
+    }
+
     [Authorize]
     [HttpGet("me/created")]
     public async Task<IActionResult> GetMyCreatedEvents([FromQuery] GetEventsPagedQuery query, [FromServices] ICurrentUserService userService)
@@ -50,7 +69,21 @@ public class EventsController : ControllerBase
     public async Task<IActionResult> Create(CreateEventCommand command)
     {
         var eventId = await _bus.InvokeAsync<int>(command);
-        return CreatedAtAction(nameof(GetPaged), new { id = eventId }, ApiResponse<object>.Ok(new { id = eventId }));
+        return CreatedAtAction(nameof(GetPaged), new { id = eventId }, ApiResponse<object>.Ok(new { id = eventId }, "Evento creado correctamente"));
+    }
+
+    [Authorize]
+    [HttpPost("upload-image")]
+    public async Task<IActionResult> UploadImage(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse<object>.Fail("No se proporcionó un archivo válido."));
+
+        using var stream = file.OpenReadStream();
+        var command = new UploadImageCommand(stream, file.FileName);
+        var imageUrl = await _bus.InvokeAsync<string>(command);
+
+        return Ok(ApiResponse<object>.Ok(new { imageUrl }, "Imagen subida correctamente"));
     }
 
     [Authorize]
@@ -91,6 +124,13 @@ public class EventsController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var response = await _bus.InvokeAsync<EventViewModel>(new GetEventByIdQuery(id));
+        return Ok(ApiResponse<EventViewModel>.Ok(response));
+    }
+
+    [HttpGet("slug/{slug}")]
+    public async Task<IActionResult> GetBySlug(string slug)
+    {
+        var response = await _bus.InvokeAsync<EventViewModel>(new GetEventBySlugQuery(slug));
         return Ok(ApiResponse<EventViewModel>.Ok(response));
     }
 

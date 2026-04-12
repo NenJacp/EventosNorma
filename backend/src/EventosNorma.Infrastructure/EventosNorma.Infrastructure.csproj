@@ -25,4 +25,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Templates\Email\*.html" />
+  </ItemGroup>
+
 </Project>

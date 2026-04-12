@@ -26,6 +26,6 @@ public class GetCurrentUserHandler
             throw new UnauthorizedAccessException("Usuario no encontrado o inactivo.");
         }
 
-        return new CurrentUserViewModel(user.Id, user.FirstName, user.LastName, user.Email);
+        return new CurrentUserViewModel(user.Id, user.FirstName, user.LastName, user.Email, user.ProfileImageUrl);
     }
 }

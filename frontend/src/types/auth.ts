@@ -23,11 +23,13 @@ export interface RegisterResponse {
 }
 
 export interface LoginResponse {
+  id?: number;
   token?: string;
   message?: string;
   email?: string;
   firstName?: string;
   lastName?: string;
+  role: string;
 }
 
 export interface VerifyEmailResponse {

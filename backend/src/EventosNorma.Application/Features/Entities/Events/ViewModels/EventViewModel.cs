@@ -5,6 +5,7 @@ namespace EventosNorma.Application.Features.Entities.Events.ViewModels;
 public record EventViewModel(
     int Id,
     string Title,
+    string Slug,
     string Description,
     DateTime StartDate,
     DateTime EndDate,
@@ -15,6 +16,12 @@ public record EventViewModel(
     string CreatorName,
     EventStatus Status,
     int MaxCapacity,
+    int CurrentCapacity,
     bool IsPrivate,
     string? AccessCode,
-    bool IsActive);
+    bool IsActive,
+    string? ImageUrl)
+{
+    public bool IsFull => CurrentCapacity >= MaxCapacity && MaxCapacity > 0;
+    public int AvailableSlots => MaxCapacity - CurrentCapacity;
+}

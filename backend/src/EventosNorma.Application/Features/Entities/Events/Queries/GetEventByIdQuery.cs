@@ -26,6 +26,7 @@ public class GetEventByIdHandler
         return new EventViewModel(
             e.Id,
             e.Title,
+            e.Slug,
             e.Description,
             e.StartDate,
             e.EndDate,
@@ -36,9 +37,11 @@ public class GetEventByIdHandler
             $"{e.Creator.FirstName} {e.Creator.LastName}",
             e.Status,
             e.MaxCapacity,
+            e.Members.Count(m => m.JoinedAt != null && m.ExitedAt == null),
             e.IsPrivate,
             // Solo admin, creador o miembro ven el AccessCode
             (currentUserService.IsAdmin || e.CreatedById == currentUserService.UserId || e.Members.Any(m => m.UserId == currentUserService.UserId && m.ExitedAt == null)) ? e.AccessCode : null,
-            e.IsActive);
+            e.IsActive,
+            e.ImageUrl);
     }
 }

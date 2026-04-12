@@ -10,4 +10,5 @@ public record CreateEventCommand(
     int EventCategoryId,
     int EventTypeId,
     bool IsPrivate,
-    int MaxCapacity);
+    int MaxCapacity,
+    string? ImageUrl = null);

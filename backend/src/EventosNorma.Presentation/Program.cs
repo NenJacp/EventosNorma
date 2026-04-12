@@ -2,7 +2,9 @@ using EventosNorma.Infrastructure.Persistence;
 using EventosNorma.Presentation.DependencyInjection;
 using EventosNorma.Presentation.Middleware;
 using FluentValidation;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +40,12 @@ app.UseSwaggerUI();
 //     app.UseHttpsRedirection();
 // }
 app.UseCors("AllowFrontend");
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads")),
+    RequestPath = "/uploads"
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

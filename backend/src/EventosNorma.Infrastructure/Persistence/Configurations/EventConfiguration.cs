@@ -12,6 +12,9 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.HasKey(e => e.Id);
 
         builder.Property(e => e.Title).IsRequired().HasMaxLength(200);
+        builder.Property(e => e.Slug).IsRequired().HasMaxLength(100).HasColumnType("varchar(100)");
+        
+        builder.HasIndex(e => e.Slug).IsUnique();
         builder.Property(e => e.Description).HasMaxLength(2000);
         builder.Property(e => e.LocationDetail).HasMaxLength(500);
         

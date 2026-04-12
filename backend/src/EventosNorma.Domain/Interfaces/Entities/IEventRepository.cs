@@ -5,10 +5,12 @@ namespace EventosNorma.Domain.Interfaces;
 public interface IEventRepository
 {
     Task<Event?> GetByIdAsync(int id);
+    Task<Event?> GetBySlugAsync(string slug);
     Task<IEnumerable<Event>> GetAllAsync(bool includeInactive = false);
     Task<(IEnumerable<Event> Items, int TotalCount)> GetPagedAsync(
         int pageNumber,
         int pageSize,
+        bool includePrivate = false,
         string? title = null,
         int? cityId = null,
         int? stateId = null,

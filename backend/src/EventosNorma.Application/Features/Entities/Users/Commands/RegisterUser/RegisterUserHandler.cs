@@ -36,8 +36,17 @@ public class RegisterUserHandler
         await tokenRepository.SaveChangesAsync();
 
         // Enviar Correo
-        var body = $"<h1>Hola {user.FirstName}</h1><p>Tu código de verificación es: <b>{code}</b></p>";
-        await emailService.SendEmailAsync(user.Email, "Verifica tu cuenta - EventosNorma", body);
+        await emailService.SendTemplatedEmailAsync(
+            user.Email,
+            "Verifica tu cuenta - EventosNorma",
+            "VerifyEmail",
+            new Dictionary<string, string>
+            {
+                { "nombre", user.FirstName },
+                { "codigo", code },
+                { "expiracion", "24 horas" }
+            }
+        );
 
         return new UserViewModel(user.Id, user.FirstName, user.LastName, user.Email);
     }

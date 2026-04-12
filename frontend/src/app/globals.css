@@ -10,3 +10,18 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* Event Card Tags */
+.tag--blue { background: #dbeafe; color: #1d4ed8; }
+.tag--purple { background: #ede9fe; color: #6d28d9; }
+.tag--green { background: #dcfce7; color: #15803d; }
+.tag--amber { background: #fef3c7; color: #92400e; }
+.tag--pink { background: #fce7f3; color: #9d174d; }
+
+/* Line clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
