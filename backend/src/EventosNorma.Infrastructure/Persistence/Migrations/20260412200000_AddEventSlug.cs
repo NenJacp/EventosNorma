@@ -11,7 +11,6 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Agregar columna nullable temporalmente
             migrationBuilder.AddColumn<string>(
                 name: "Slug",
                 table: "events",
@@ -20,27 +19,25 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
                 nullable: true,
                 defaultValue: null);
 
-            // Generar slugs simples
             migrationBuilder.Sql(@"
-                UPDATE events 
-                SET slug = LOWER(REPLACE(title, ' ', '-')) || '-' || id::TEXT
-                WHERE slug IS NULL OR slug = '';
+                UPDATE ""events"" 
+                SET ""Slug"" = LOWER(REPLACE(""title"", ' ', '-')) || '-' || ""id""::TEXT
+                WHERE ""Slug"" IS NULL;
             ");
 
-            // Actualizar valores nulos con默认值
             migrationBuilder.Sql(@"
-                UPDATE events 
-                SET slug = 'evento-' || id::TEXT
-                WHERE slug IS NULL OR slug = '';
+                UPDATE ""events"" 
+                SET ""Slug"" = 'evento-' || ""id""::TEXT
+                WHERE ""Slug"" IS NULL;
             ");
 
-            // Hacer la columna NOT NULL
             migrationBuilder.AlterColumn<string>(
                 name: "Slug",
                 table: "events",
                 type: "varchar(100)",
                 maxLength: 100,
-                nullable: false);
+                nullable: false,
+                defaultValue: "");
 
             migrationBuilder.CreateIndex(
                 name: "IX_events_Slug",
