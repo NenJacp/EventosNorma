@@ -7,7 +7,7 @@ export interface EventCardProps {
   id: number;
   title: string;
   slug: string;
-  description: string;
+  eventTypeName: string;
   startDate: string;
   locationDetail: string;
   cityName: string;
@@ -32,7 +32,7 @@ export default function EventCard({
   id,
   slug,
   title,
-  description,
+  eventTypeName,
   startDate,
   locationDetail,
   cityName,
@@ -101,17 +101,18 @@ export default function EventCard({
 
         {/* Cuerpo */}
         <div className="p-3.5">
-          <span className={`event-card__tag tag inline-block text-[10px] font-medium px-2 py-1 rounded-full mb-2 ${tagClass}`}>
-            {categoryName}
-          </span>
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`event-card__tag tag inline-block text-[10px] font-medium px-2 py-1 rounded-full ${tagClass}`}>
+              {categoryName}
+            </span>
+            <span className="inline-block text-[10px] font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+              {eventTypeName}
+            </span>
+          </div>
 
-          <h3 className="text-sm font-semibold text-slate-900 mb-1.5 line-clamp-2">
+          <h3 className="text-sm font-semibold text-slate-900 mb-3 line-clamp-2">
             {title}
           </h3>
-
-          <p className="text-xs text-slate-500 line-clamp-2 mb-3">
-            {description}
-          </p>
 
           <div className="flex items-center gap-1 text-[11px] text-slate-400 mb-3">
             <MapPin size={12} />

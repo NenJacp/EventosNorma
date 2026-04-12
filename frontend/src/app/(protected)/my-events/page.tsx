@@ -97,7 +97,7 @@ export default function MyEventsPage() {
                 id={event.id}
                 slug={event.slug}
                 title={event.title}
-                description={event.description}
+                eventTypeName={event.eventTypeName}
                 startDate={event.startDate}
                 locationDetail={event.locationDetail}
                 cityName={event.cityName}
