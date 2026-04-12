@@ -6,12 +6,15 @@ export class ApiError extends Error {
   detail?: string;
   errors?: Record<string, string[]>;
 
-  constructor(message: string, options?: {
-    status?: number;
-    title?: string;
-    detail?: string;
-    errors?: Record<string, string[]>;
-  }) {
+  constructor(
+    message: string,
+    options?: {
+      status?: number;
+      title?: string;
+      detail?: string;
+      errors?: Record<string, string[]>;
+    }
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = options?.status;

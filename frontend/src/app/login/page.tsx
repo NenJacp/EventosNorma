@@ -3,6 +3,8 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+
 import AuthShell from "@/components/AuthShell";
 import AlertMessage from "@/components/AlertMessage";
 import { apiFetch, ApiError } from "@/lib/api";
@@ -20,6 +22,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [warning, setWarning] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
@@ -34,16 +37,10 @@ export default function LoginPage() {
       return false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-      setError("Ingresa un correo válido.");
-      return false;
-    }
-
     return true;
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setWarning("");
@@ -53,39 +50,41 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
-      const data = await apiFetch<LoginResponse>("/api/Users/login", {
+      const response = await apiFetch<LoginResponse>("/api/Users/login", {
         method: "POST",
         body: JSON.stringify(form),
       });
 
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
+      if (!response.success || !response.data) {
+        setError("No se pudo iniciar sesión.");
+        return;
       }
 
-      saveSession({
-        token: data?.token,
-        email: data?.email || form.email,
-        firstName: data?.firstName || "",
-        lastName: data?.lastName || "",
-      });
+      saveSession(response.data);
 
-      router.push("/dashboard");
-    } catch (err: unknown) {
+      const role = response.data.role?.toLowerCase();
+
+      if (role === "admin") {
+        router.push("/admin/home");
+      } else {
+        router.push("/home");
+      }
+    } catch (err) {
       if (err instanceof ApiError) {
-        const normalizedMessage = err.message.toLowerCase();
-
         if (
-          err.status === 401 &&
-          normalizedMessage.includes("verificar tu correo")
+          err.message
+            .toLowerCase()
+            .includes("debes verificar tu correo electrónico")
         ) {
           setWarning(err.message);
-          router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
-        } else {
-          setError(err.message);
+          return;
         }
-      } else {
-        setError("No se pudo iniciar sesión.");
+
+        setError(err.message || "Ocurrió un error al iniciar sesión.");
+        return;
       }
+
+      setError("Error inesperado al iniciar sesión.");
     } finally {
       setLoading(false);
     }
@@ -94,15 +93,18 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Iniciar sesión"
-      description="Ingresa tus credenciales para acceder al sistema"
-      sideTitle="Organiza, crea y administra tus eventos en un solo lugar."
-      sideText="Accede a tu cuenta para gestionar asistentes, fechas, detalles y nuevas experiencias."
-      sideFooter="Si tu correo aún no está validado, te enviaremos a la pantalla de verificación."
+      description="Accede a tu cuenta para continuar"
+      sideTitle="Bienvenido de nuevo"
+      sideText="Inicia sesión para continuar en la plataforma y administrar tus eventos de manera rápida y segura."
+      sideFooter="Centraliza tu información, organiza eventos y mantén todo bajo control desde un solo lugar."
       accent="blue"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <AlertMessage type="error" message={error} />}
+      {warning && <AlertMessage type="warning" message={warning} />}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-medium text-slate-700">
             Correo electrónico
           </label>
           <input
@@ -110,46 +112,66 @@ export default function LoginPage() {
             name="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="ejemplo@correo.com"
-            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            placeholder="correo@ejemplo.com"
+            className="w-full rounded-xl border border-slate-300 px-4 py-3.5 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
           />
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Contraseña
-          </label>
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="********"
-            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-          />
-        </div>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <label className="block text-sm font-medium text-slate-700">
+              Contraseña
+            </label>
 
-        {error && <AlertMessage type="error" message={error} />}
-        {warning && <AlertMessage type="warning" message={warning} />}
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-slate-600 transition hover:text-blue-700"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Ingresa tu contraseña"
+              className="w-full rounded-xl border border-slate-300 px-4 py-3.5 pr-12 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-700"
+              aria-label={
+                showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+              }
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+        </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl bg-gradient-to-r from-slate-800 via-blue-900 to-slate-900 px-4 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-slate-700 hover:via-blue-800 hover:to-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {loading ? "Ingresando..." : "Iniciar sesión"}
         </button>
-      </form>
 
-      <p className="mt-6 text-sm text-gray-600">
-        ¿No tienes cuenta?{" "}
-        <Link
-          href="/register"
-          className="font-semibold text-slate-900 transition hover:underline"
-        >
-          Crear cuenta
-        </Link>
-      </p>
+        <p className="text-center text-sm text-slate-600">
+          ¿No tienes cuenta?{" "}
+          <Link
+            href="/register"
+            className="font-semibold text-blue-700 transition hover:text-blue-900"
+          >
+            Regístrate
+          </Link>
+        </p>
+      </form>
     </AuthShell>
   );
 }

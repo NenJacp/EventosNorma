@@ -1,8 +1,10 @@
 export interface SessionUser {
+  id?: number;
   firstName?: string;
   lastName?: string;
   email?: string;
   token?: string;
+  role?: string;
 }
 
 const USER_KEY = "eventos_user";

@@ -23,11 +23,10 @@ export interface RegisterResponse {
 }
 
 export interface LoginResponse {
-  token?: string;
-  message?: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
+  success: boolean;
+  message: string | null;
+  data: UserSession | null;
+  errors: string[] | null;
 }
 
 export interface VerifyEmailResponse {
@@ -38,4 +37,36 @@ export interface VerifyEmailResponse {
 
 export interface LogoutResponse {
   message?: string;
+}
+
+export interface UserSession {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  success?: boolean;
+  message?: string | null;
+  data?: boolean | null;
+  errors?: string[] | null;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  success?: boolean;
+  message?: string | null;
+  data?: boolean | null;
+  errors?: string[] | null;
 }
