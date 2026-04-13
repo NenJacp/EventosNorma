@@ -2,11 +2,23 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Calendar, LogOut, Menu, X, LayoutGrid, Heart, User, Shield } from "lucide-react";
-import { apiFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  X,
+  Calendar,
+  Globe,
+  MapPin,
+  Tag,
+  List,
+  Users,
+  Shield
+} from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
-interface SidebarUser {
+interface AdminUser {
   firstName: string;
   lastName: string;
   email: string;
@@ -14,27 +26,42 @@ interface SidebarUser {
   profileImage?: string;
 }
 
-interface SidebarProps {
+interface AdminSidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   visible: boolean;
 }
 
-const menuSections = [
+const adminMenuSections = [
   {
-    title: "PRINCIPAL",
+    title: "PANEL",
     items: [
-      { href: "/home", label: "Inicio", icon: LayoutGrid },
-      { href: "/my-events", label: "Mis Eventos", icon: Calendar },
-      { href: "/subscriptions", label: "Subscripciones", icon: Heart },
+      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/admin/all-events", label: "Eventos", icon: Calendar },
+    ],
+  },
+  {
+    title: "CATÁLOGOS",
+    items: [
+      { href: "/admin/catalog/countries", label: "Países", icon: Globe },
+      { href: "/admin/catalog/states", label: "Estados", icon: MapPin },
+      { href: "/admin/catalog/cities", label: "Ciudades", icon: MapPin },
+      { href: "/admin/catalog/event-types", label: "Tipos de Evento", icon: Tag },
+      { href: "/admin/catalog/event-categories", label: "Categorías", icon: List },
+    ],
+  },
+  {
+    title: "USUARIOS",
+    items: [
+      { href: "/admin/users", label: "Usuarios", icon: Users },
     ],
   },
 ];
 
-export default function Sidebar({ isOpen, onToggle, visible }: SidebarProps) {
+export default function AdminSidebar({ isOpen, onToggle, visible }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<SidebarUser | null>(null);
+  const [user, setUser] = useState<AdminUser | null>(null);
   const [loadingLogout, setLoadingLogout] = useState(false);
 
   useEffect(() => {
@@ -48,6 +75,11 @@ export default function Sidebar({ isOpen, onToggle, visible }: SidebarProps) {
           role?: string;
           profileImage?: string;
         }>("/api/Users/currentUser");
+        
+        if (res.role !== "Admin") {
+          router.push("/home");
+          return;
+        }
         
         setUser({
           firstName: res.firstName,
@@ -75,9 +107,8 @@ export default function Sidebar({ isOpen, onToggle, visible }: SidebarProps) {
     }
   };
 
-  const isAdmin = user?.role === "Admin";
   const userEmail = user?.email ?? "";
-  const fullName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || userEmail || "Usuario";
+  const fullName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || userEmail || "Admin";
   const initials =
     (user?.firstName?.[0]?.toUpperCase() || userEmail[0]?.toUpperCase() || "?") +
     (user?.lastName?.[0]?.toUpperCase() || "");
@@ -90,37 +121,15 @@ export default function Sidebar({ isOpen, onToggle, visible }: SidebarProps) {
       ${visible ? "md:translate-x-0" : "md:-translate-x-full"}
     `}
     >
-      {/* Brand / Logo */}
       <div className="flex items-center gap-3 px-6 py-6 border-b border-white/5">
-        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+        <Shield size={20} className="text-amber-500" />
         <span className="font-semibold text-white tracking-wide">
-          Eventos App
+          Admin Panel
         </span>
       </div>
 
-      {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-6 space-y-6">
-        {isAdmin && (
-          <div>
-            <h3 className="px-6 mb-3 text-[11px] font-semibold text-amber-500 tracking-wider">
-              ADMINISTRACIÓN
-            </h3>
-            <ul className="space-y-1 px-3">
-              <li>
-                <Link
-                  href="/admin/dashboard"
-                  onClick={() => onToggle()}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors hover:bg-white/5 hover:text-white"
-                >
-                  <Shield size={18} className="text-amber-500" />
-                  <span className="text-sm font-medium text-amber-400">Panel Admin</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-        )}
-
-        {menuSections.map((section) => (
+        {adminMenuSections.map((section) => (
           <div key={section.title}>
             <h3 className="px-6 mb-3 text-[11px] font-semibold text-slate-500 tracking-wider">
               {section.title}
@@ -139,7 +148,7 @@ export default function Sidebar({ isOpen, onToggle, visible }: SidebarProps) {
                       onClick={() => onToggle()}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                         isActive
-                          ? "bg-[#1e293b] text-white relative before:absolute before:left-[-12px] before:top-0 before:bottom-0 before:w-1 before:bg-blue-500"
+                          ? "bg-[#1e293b] text-white relative before:absolute before:left-[-12px] before:top-0 before:bottom-0 before:w-1 before:bg-amber-500"
                           : "hover:bg-white/5 hover:text-white"
                       }`}
                     >
@@ -157,43 +166,39 @@ export default function Sidebar({ isOpen, onToggle, visible }: SidebarProps) {
         ))}
       </div>
 
-      {/* User Profile & Logout (Bottom) */}
       <div className="border-t border-white/5 p-4 bg-[#0b1121]">
         <Link
-          href="/profile"
-          onClick={() => onToggle()}
+          href="/home"
           className="flex items-center gap-3 px-2 mb-4 hover:bg-white/5 rounded-lg p-1 -mx-1 transition-colors"
         >
-          {user?.profileImage && user.profileImage.includes("/uploads") ? (
-            <img
-              src={user.profileImage}
-              alt="Foto de perfil"
-              className="w-10 h-10 rounded-full object-cover border border-white/10"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center text-blue-400 font-semibold text-sm border border-white/10">
-              {initials}
-            </div>
-          )}
+          <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white font-semibold text-sm">
+            {initials}
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white truncate">
               {fullName}
             </p>
-            <p className="text-[11px] text-slate-400 truncate">
-              {isAdmin ? "Administrador" : "Usuario"}
+            <p className="text-[11px] text-amber-400 truncate">
+              Administrador
             </p>
           </div>
-          <User size={14} className="text-slate-500" />
         </Link>
 
-        <button
-          onClick={handleLogout}
-          disabled={loadingLogout}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-white/10 text-slate-300 hover:bg-white/5 hover:text-white transition-colors text-sm font-medium"
-        >
-          <LogOut size={16} />
-          {loadingLogout ? "Saliendo..." : "Cerrar sesión"}
-        </button>
+        <div className="flex gap-2">
+          <Link
+            href="/home"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors text-sm font-medium"
+          >
+            Ver Sitio
+          </Link>
+          <button
+            onClick={handleLogout}
+            disabled={loadingLogout}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-white/10 text-slate-300 hover:bg-white/5 transition-colors text-sm font-medium"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
       </div>
     </aside>
   );

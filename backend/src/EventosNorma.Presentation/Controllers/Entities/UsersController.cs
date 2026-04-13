@@ -100,12 +100,30 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<IEnumerable<UserViewModel>>.Ok(users));
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] DeleteUserCommand command)
     {
         await _bus.InvokeAsync(command);
         return Ok(ApiResponse<object>.Ok(null, "Usuario desactivado correctamente"));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/ban")]
+    public async Task<IActionResult> BanUser(int id, [FromBody] BanUserRequest? request)
+    {
+        var command = new BanUserCommand(id, request?.Reason);
+        await _bus.InvokeAsync(command);
+        return Ok(ApiResponse<object>.Ok(null, "Usuario baneado correctamente"));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/unban")]
+    public async Task<IActionResult> UnbanUser(int id)
+    {
+        var command = new UnbanUserCommand(id);
+        await _bus.InvokeAsync(command);
+        return Ok(ApiResponse<object>.Ok(null, "Usuario desbaneado correctamente"));
     }
 
     [Authorize]
@@ -133,3 +151,5 @@ public class UsersController : ControllerBase
         return success ? Ok(ApiResponse<object>.Ok(null, "Perfil actualizado correctamente.")) : BadRequest();
     }
 }
+
+public record BanUserRequest(string? Reason);

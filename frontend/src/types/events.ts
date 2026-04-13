@@ -27,6 +27,27 @@ export interface EventViewModel {
 
 export type EventStatus = "Draft" | "Published" | "Cancelled" | "Closed" | "Open";
 
+export interface SubscriptionViewModel {
+  eventId: number;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  locationDetail: string;
+  cityName: string;
+  categoryName: string;
+  typeName: string;
+  creatorName: string;
+  status: EventStatus;
+  joinedAt: string;
+  isActive: boolean;
+  maxCapacity: number;
+  currentCapacity: number;
+  hasExited: boolean;
+  isFull: boolean;
+  availableSlots: number;
+}
+
 export interface PagedList<T> {
   items: T[];
   totalCount: number;

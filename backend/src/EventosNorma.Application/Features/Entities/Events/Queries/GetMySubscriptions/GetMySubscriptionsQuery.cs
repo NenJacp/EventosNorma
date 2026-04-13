@@ -36,6 +36,8 @@ public class GetMySubscriptionsHandler
             m.Event.Status,
             m.JoinedAt,
             m.Event.IsActive,
+            m.Event.MaxCapacity,
+            m.Event.Members.Count(mem => mem.ExitedAt == null),
             m.ExitedAt != null
         )).ToList();
 
@@ -61,4 +63,10 @@ public record SubscriptionViewModel(
     Domain.Enums.EventStatus Status,
     DateTime JoinedAt,
     bool IsActive,
-    bool HasExited);
+    int MaxCapacity,
+    int CurrentCapacity,
+    bool HasExited)
+{
+    public bool IsFull => MaxCapacity > 0 && CurrentCapacity >= MaxCapacity;
+    public int AvailableSlots => MaxCapacity - CurrentCapacity;
+}

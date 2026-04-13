@@ -9,6 +9,17 @@ public class GetAllUsersHandler
     public async Task<IEnumerable<UserViewModel>> Handle(GetAllUsersQuery query, IUserRepository userRepository)
     {
         var users = await userRepository.GetAllAsync();
-        return users.Select(u => new UserViewModel(u.Id, u.FirstName, u.LastName, u.Email));
+        return users.Select(u => new UserViewModel(
+            u.Id,
+            u.FirstName,
+            u.LastName,
+            u.Email,
+            u.Role.ToString(),
+            u.IsBanned,
+            u.BanReason,
+            u.BannedAt,
+            u.IsActive,
+            u.CreatedAt
+        ));
     }
 }

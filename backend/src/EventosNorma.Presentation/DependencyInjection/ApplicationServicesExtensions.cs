@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using EventosNorma.Application.Features.Entities.Users.Commands;
 using FluentValidation;
 using Wolverine;
@@ -17,7 +18,11 @@ public static class ApplicationServicesExtensions
             options.UseEntityFrameworkCoreTransactions();
         });
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserHandler>();
         builder.Services.AddHttpContextAccessor();

@@ -22,7 +22,7 @@ public class EventRepository : IEventRepository
             .Include(e => e.EventCategory)
             .Include(e => e.EventType)
             .Include(e => e.Creator)
-            .Include(e => e.Members)
+            .Include(e => e.Members).ThenInclude(m => m.User)
             .FirstOrDefaultAsync(e => e.Id == id);
     }
 
@@ -33,7 +33,7 @@ public class EventRepository : IEventRepository
             .Include(e => e.EventCategory)
             .Include(e => e.EventType)
             .Include(e => e.Creator)
-            .Include(e => e.Members)
+            .Include(e => e.Members).ThenInclude(m => m.User)
             .FirstOrDefaultAsync(e => e.Slug == slug);
     }
 
@@ -80,7 +80,7 @@ public class EventRepository : IEventRepository
             .Include(e => e.EventCategory)
             .Include(e => e.EventType)
             .Include(e => e.Creator)
-            .Include(e => e.Members)
+            .Include(e => e.Members).ThenInclude(m => m.User)
             .AsQueryable();
 
         // 0. Privacidad y Access Code
