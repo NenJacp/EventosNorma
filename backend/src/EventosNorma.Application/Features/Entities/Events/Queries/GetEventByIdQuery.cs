@@ -21,11 +21,15 @@ public class GetEventByIdHandler
 
         // Si es privado y NO es admin, NO es el creador, y NO es miembro: ocultar.
         if (e.IsPrivate && !currentUserService.IsAdmin && e.CreatedById != currentUserService.UserId && !e.Members.Any(m => m.UserId == currentUserService.UserId && m.ExitedAt == null))
-            throw new UnauthorizedAccessException("Este evento es privado. Debes unirte mediante código de acceso para verlo.");
+            throw new UnauthorizedAccessException("Este evento es privado. Solicita el código de acceso al creador del evento.");
+
+        var userId = currentUserService.UserId ?? 0;
+        var isMember = e.Members.Any(m => m.UserId == userId && m.ExitedAt == null);
 
         return new EventViewModel(
             e.Id,
             e.Title,
+            e.Slug,
             e.Description,
             e.StartDate,
             e.EndDate,
@@ -36,9 +40,12 @@ public class GetEventByIdHandler
             $"{e.Creator.FirstName} {e.Creator.LastName}",
             e.Status,
             e.MaxCapacity,
+            e.Members.Count(m => m.JoinedAt != null && m.ExitedAt == null),
             e.IsPrivate,
-            // Solo admin, creador o miembro ven el AccessCode
-            (currentUserService.IsAdmin || e.CreatedById == currentUserService.UserId || e.Members.Any(m => m.UserId == currentUserService.UserId && m.ExitedAt == null)) ? e.AccessCode : null,
-            e.IsActive);
+            (currentUserService.IsAdmin || e.CreatedById == userId || isMember) ? e.AccessCode : null,
+            e.IsActive,
+            e.ImageUrl,
+            e.CreatedById == userId,
+            isMember);
     }
 }

@@ -19,7 +19,7 @@ public class UpdateUserProfileImageHandler
         var imageUrl = await fileService.SaveFileAsync(command.FileStream, command.FileName, "users");
         
         // Eliminar la imagen anterior si no es la por defecto
-        if (!string.IsNullOrEmpty(user.ProfileImageUrl) && user.ProfileImageUrl != "/uploads/users/defaultprofile.png")
+        if (!string.IsNullOrEmpty(user.ProfileImageUrl) && user.ProfileImageUrl != "/defaults/profile.png")
         {
             fileService.DeleteFile(user.ProfileImageUrl);
         }

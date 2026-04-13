@@ -4,9 +4,9 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthShell from "@/components/AuthShell";
-import AlertMessage from "@/components/AlertMessage";
+import PasswordInput from "@/components/PasswordInput";
 import { apiFetch, ApiError } from "@/lib/api";
-import { saveSession } from "@/lib/auth";
+import { toast } from "@/lib/toast";
 import type { LoginRequest, LoginResponse } from "@/types/auth";
 
 export default function LoginPage() {
@@ -18,8 +18,6 @@ export default function LoginPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [warning, setWarning] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
@@ -30,13 +28,13 @@ export default function LoginPage() {
 
   const validateForm = () => {
     if (!form.email.trim() || !form.password.trim()) {
-      setError("Todos los campos son obligatorios.");
+      toast.error("Todos los campos son obligatorios.");
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
-      setError("Ingresa un correo válido.");
+      toast.error("Ingresa un correo válido.");
       return false;
     }
 
@@ -45,8 +43,6 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
-    setWarning("");
 
     if (!validateForm()) return;
 
@@ -58,18 +54,13 @@ export default function LoginPage() {
         body: JSON.stringify(form),
       });
 
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
+      toast.success(`Bienvenido, ${data?.firstName || "usuario"}`);
+
+      if (data?.role === "Admin") {
+        router.push("/admin");
+      } else {
+        router.push("/home");
       }
-
-      saveSession({
-        token: data?.token,
-        email: data?.email || form.email,
-        firstName: data?.firstName || "",
-        lastName: data?.lastName || "",
-      });
-
-      router.push("/dashboard");
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         const normalizedMessage = err.message.toLowerCase();
@@ -78,13 +69,13 @@ export default function LoginPage() {
           err.status === 401 &&
           normalizedMessage.includes("verificar tu correo")
         ) {
-          setWarning(err.message);
+          toast.warning(err.message);
           router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
         } else {
-          setError(err.message);
+          toast.error(err.message);
         }
       } else {
-        setError("No se pudo iniciar sesión.");
+        toast.error("No se pudo iniciar sesión.");
       }
     } finally {
       setLoading(false);
@@ -119,33 +110,38 @@ export default function LoginPage() {
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Contraseña
           </label>
-          <input
-            type="password"
+          <PasswordInput
             name="password"
             value={form.password}
             onChange={handleChange}
             placeholder="********"
-            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            disabled={loading}
           />
         </div>
-
-        {error && <AlertMessage type="error" message={error} />}
-        {warning && <AlertMessage type="warning" message={warning} />}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 font-semibold text-white transition hover:from-blue-500 hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Ingresando..." : "Iniciar sesión"}
         </button>
+
+        <div className="flex items-center justify-center">
+          <Link
+            href="/forgot-password"
+            className="text-sm font-semibold text-blue-700 transition hover:underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
       </form>
 
       <p className="mt-6 text-sm text-gray-600">
         ¿No tienes cuenta?{" "}
         <Link
           href="/register"
-          className="font-semibold text-slate-900 transition hover:underline"
+          className="font-semibold text-blue-700 transition hover:underline"
         >
           Crear cuenta
         </Link>

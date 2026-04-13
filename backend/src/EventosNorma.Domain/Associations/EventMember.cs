@@ -9,6 +9,8 @@ public class EventMember
 
     // 2. Estado Lógico
     public DateTime? ExitedAt { get; private set; }
+    public bool IsBanned { get; private set; } = false;
+    public DateTime? BannedAt { get; private set; }
 
     // 3. Relaciones / FKs
     public int EventId { get; private set; }
@@ -34,7 +36,8 @@ public class EventMember
         {
             EventId = eventId,
             UserId = userId,
-            JoinedAt = DateTime.UtcNow
+            JoinedAt = DateTime.UtcNow,
+            IsBanned = false
         };
     }
 
@@ -42,5 +45,20 @@ public class EventMember
     public void Exit()
     {
         ExitedAt = DateTime.UtcNow;
+    }
+
+    public void Ban()
+    {
+        if (IsBanned) return;
+        IsBanned = true;
+        BannedAt = DateTime.UtcNow;
+        ExitedAt = DateTime.UtcNow;
+    }
+
+    public void Unban()
+    {
+        if (!IsBanned) return;
+        IsBanned = false;
+        BannedAt = null;
     }
 }

@@ -11,12 +11,24 @@ public class GetEventsPagedHandler
         IEventRepository eventRepository,
         ICurrentUserService currentUserService)
     {
-        // Si no es admin, forzar IsActive = true
+        var userId = currentUserService.UserId ?? 0;
+        
         bool? isActiveFilter = currentUserService.IsAdmin ? query.IsActive : true;
+
+        int? excludeCreatedById = query.ExcludeCreatedById;
+        if (!currentUserService.IsAdmin && query.CreatedById == null && query.JoinedByUserId == null)
+        {
+            excludeCreatedById = currentUserService.UserId;
+        }
+
+        bool includePrivate = currentUserService.IsAdmin 
+            || query.CreatedById.HasValue 
+            || query.JoinedByUserId.HasValue;
 
         var (items, totalCount) = await eventRepository.GetPagedAsync(
             query.PageNumber,
             query.PageSize,
+            includePrivate,
             query.Title,
             query.CityId,
             query.StateId,
@@ -24,7 +36,7 @@ public class GetEventsPagedHandler
             query.EventCategoryId,
             query.EventTypeId,
             query.CreatedById,
-            query.ExcludeCreatedById,
+            excludeCreatedById,
             query.JoinedByUserId,
             query.StartDate,
             query.EndDate,
@@ -35,27 +47,52 @@ public class GetEventsPagedHandler
             query.SortBy,
             query.IsAscending);
 
-        var viewModels = items.Select(e => new EventViewModel(
-            e.Id,
-            e.Title,
-            e.Description,
-            e.StartDate,
-            e.EndDate,
-            e.LocationDetail,
-            e.City.Name,
-            e.EventCategory.Name,
-            e.EventType.Name,
-            $"{e.Creator.FirstName} {e.Creator.LastName}",
-            e.Status,
-            e.MaxCapacity,
-            e.IsPrivate,
-            // Regla: Solo el creador, un miembro, o el admin pueden ver el AccessCode. O si lo buscaron específicamente por ese código.
-            (currentUserService.IsAdmin || e.CreatedById == currentUserService.UserId || e.Members.Any(m => m.UserId == currentUserService.UserId && m.ExitedAt == null) || query.AccessCode == e.AccessCode) ? e.AccessCode : null,
-            e.IsActive));
+        var filteredItems = items.AsEnumerable();
+
+        if (query.ExcludeJoinedEvents == true && userId > 0)
+        {
+            filteredItems = filteredItems.Where(e => 
+                !e.Members.Any(m => m.UserId == userId && m.ExitedAt == null));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var searchLower = query.Search.ToLowerInvariant();
+            filteredItems = filteredItems.Where(e =>
+                e.Title.ToLowerInvariant().Contains(searchLower) ||
+                e.Description.ToLowerInvariant().Contains(searchLower));
+        }
+
+        var viewModels = filteredItems.Select(e => {
+            var isMember = e.Members.Any(m => m.UserId == userId && m.ExitedAt == null);
+            var isCreator = e.CreatedById == userId;
+            var showAccessCode = currentUserService.IsAdmin || isCreator || isMember || query.AccessCode == e.AccessCode;
+            return new EventViewModel(
+                e.Id,
+                e.Title,
+                e.Slug,
+                e.Description,
+                e.StartDate,
+                e.EndDate,
+                e.LocationDetail,
+                e.City.Name,
+                e.EventCategory.Name,
+                e.EventType.Name,
+                $"{e.Creator.FirstName} {e.Creator.LastName}",
+                e.Status,
+                e.MaxCapacity,
+                e.Members.Count(m => m.JoinedAt != null && m.ExitedAt == null),
+                e.IsPrivate,
+                showAccessCode ? e.AccessCode : null,
+                e.IsActive,
+                e.ImageUrl,
+                isCreator,
+                isMember);
+        });
 
         return new PagedList<EventViewModel>(
             viewModels,
-            totalCount,
+            filteredItems.Count(),
             query.PageNumber,
             query.PageSize);
     }

@@ -275,6 +275,11 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -298,6 +303,9 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
                     b.HasIndex("EventCategoryId");
 
                     b.HasIndex("EventTypeId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
 
                     b.ToTable("events", (string)null);
                 });

@@ -1,4 +1,6 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export const API_URL = ""; // Use relative paths for Next.js rewrites
+
+const PUBLIC_ENDPOINTS = ["/api/Users/login", "/api/Users/register", "/api/Users/forgot-password", "/api/Users/verify-password-code", "/api/Users/verify-email", "/api/Users/resend-verification", "/api/Users/reset-password", "/api/Users/logout"];
 
 export class ApiError extends Error {
   status?: number;
@@ -26,6 +28,7 @@ export async function apiFetch<T>(
   options?: RequestInit
 ): Promise<T> {
   const response = await fetch(`${API_URL}${endpoint}`, {
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(options?.headers || {}),
@@ -38,12 +41,12 @@ export async function apiFetch<T>(
   if (!response.ok) {
     let message = "Ocurrió un error en la petición.";
 
-    if (data?.detail) {
+    if (data?.message) {
+      message = data.message;
+    } else if (data?.detail) {
       message = data.detail;
     } else if (data?.title) {
       message = data.title;
-    } else if (data?.message) {
-      message = data.message;
     } else if (data?.errors) {
       const firstKey = Object.keys(data.errors)[0];
       if (firstKey && Array.isArray(data.errors[firstKey])) {
@@ -59,5 +62,19 @@ export async function apiFetch<T>(
     });
   }
 
-  return data;
+  if (data && typeof data === "object" && "success" in data) {
+    if (data.success && "data" in data) {
+      return data.data as T;
+    }
+    throw new ApiError(data.message || "Error en la petición", {
+      status: 400,
+      errors: data.errors,
+    });
+  }
+
+  if (data && typeof data === "object" && "data" in data) {
+    return data.data as T;
+  }
+
+  return data as T;
 }

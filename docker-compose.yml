@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${EVENTOSNORMA_DB_USER}
       POSTGRES_PASSWORD: ${EVENTOSNORMA_DB_PASSWORD}
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -43,7 +43,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     ports:
-      - "3001:3001"
+      - "3003:3001"
     depends_on:
       - backend
     networks:

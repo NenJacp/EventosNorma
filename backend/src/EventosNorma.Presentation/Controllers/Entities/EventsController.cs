@@ -27,6 +27,25 @@ public class EventsController : ControllerBase
         return Ok(ApiResponse<PagedList<EventViewModel>>.Ok(response));
     }
 
+    [HttpGet("by-code/{code}")]
+    public async Task<IActionResult> GetByCode(string code)
+    {
+        var query = new GetEventsPagedQuery
+        {
+            AccessCode = code,
+            PageNumber = 1,
+            PageSize = 1
+        };
+
+        var response = await _bus.InvokeAsync<PagedList<EventViewModel>>(query);
+        var @event = response.Items.FirstOrDefault();
+
+        if (@event == null)
+            return NotFound(ApiResponse<object>.Fail("No se encontró un evento con ese código."));
+
+        return Ok(ApiResponse<EventViewModel>.Ok(@event));
+    }
+
     [Authorize]
     [HttpGet("me/created")]
     public async Task<IActionResult> GetMyCreatedEvents([FromQuery] GetEventsPagedQuery query, [FromServices] ICurrentUserService userService)
@@ -49,8 +68,22 @@ public class EventsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateEventCommand command)
     {
-        var eventId = await _bus.InvokeAsync<int>(command);
-        return CreatedAtAction(nameof(GetPaged), new { id = eventId }, ApiResponse<object>.Ok(new { id = eventId }));
+        var result = await _bus.InvokeAsync<CreateEventResponse>(command);
+        return CreatedAtAction(nameof(GetPaged), new { id = result.Id }, ApiResponse<CreateEventResponse>.Ok(result, "Evento creado correctamente"));
+    }
+
+    [Authorize]
+    [HttpPost("upload-image")]
+    public async Task<IActionResult> UploadImage(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse<object>.Fail("No se proporcionó un archivo válido."));
+
+        using var stream = file.OpenReadStream();
+        var command = new UploadImageCommand(stream, file.FileName);
+        var imageUrl = await _bus.InvokeAsync<string>(command);
+
+        return Ok(ApiResponse<object>.Ok(new { imageUrl }, "Imagen subida correctamente"));
     }
 
     [Authorize]
@@ -79,6 +112,14 @@ public class EventsController : ControllerBase
     }
 
     [Authorize]
+    [HttpPost("{id}/leave")]
+    public async Task<IActionResult> Leave(int id)
+    {
+        var success = await _bus.InvokeAsync<bool>(new LeaveEventCommand(id));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Has abandonado el evento correctamente")) : BadRequest();
+    }
+
+    [Authorize]
     [HttpPost("{id}/comments")]
     public async Task<IActionResult> AddComment(int id, [FromBody] AddCommentCommand command)
     {
@@ -91,6 +132,13 @@ public class EventsController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var response = await _bus.InvokeAsync<EventViewModel>(new GetEventByIdQuery(id));
+        return Ok(ApiResponse<EventViewModel>.Ok(response));
+    }
+
+    [HttpGet("slug/{slug}")]
+    public async Task<IActionResult> GetBySlug(string slug, [FromQuery] string? code)
+    {
+        var response = await _bus.InvokeAsync<EventViewModel>(new GetEventBySlugQuery(slug, code));
         return Ok(ApiResponse<EventViewModel>.Ok(response));
     }
 
@@ -108,6 +156,38 @@ public class EventsController : ControllerBase
     {
         var success = await _bus.InvokeAsync<bool>(new CancelEventCommand(id));
         return success ? Ok(ApiResponse<object>.Ok(null, "Evento cancelado correctamente")) : BadRequest();
+    }
+
+    [Authorize]
+    [HttpPost("{id}/reopen")]
+    public async Task<IActionResult> Reopen(int id)
+    {
+        var success = await _bus.InvokeAsync<bool>(new ReopenEventCommand(id));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Evento reopen correctamente")) : BadRequest();
+    }
+
+    [Authorize]
+    [HttpGet("{id}/members")]
+    public async Task<IActionResult> GetMembers(int id)
+    {
+        var response = await _bus.InvokeAsync<IEnumerable<EventMemberViewModel>>(new GetEventMembersQuery(id));
+        return Ok(ApiResponse<IEnumerable<EventMemberViewModel>>.Ok(response));
+    }
+
+    [Authorize]
+    [HttpPost("{id}/members/{userId}/ban")]
+    public async Task<IActionResult> BanMember(int id, int userId)
+    {
+        var success = await _bus.InvokeAsync<bool>(new BanMemberCommand(id, userId));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Miembro baneado correctamente")) : BadRequest();
+    }
+
+    [Authorize]
+    [HttpPost("{id}/members/{userId}/unban")]
+    public async Task<IActionResult> UnbanMember(int id, int userId)
+    {
+        var success = await _bus.InvokeAsync<bool>(new UnbanMemberCommand(id, userId));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Miembro desbaneado correctamente")) : BadRequest();
     }
 
     [Authorize]

@@ -41,10 +41,25 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<object>.Ok(null, "Correo electrónico verificado con éxito."));
     }
 
+    [HttpPost("resend-verification")]
+    public async Task<IActionResult> ResendVerification(ResendVerificationCommand command)
+    {
+        await _bus.InvokeAsync(command);
+        return Ok(ApiResponse<object>.Ok(null, "Código de verificación reenviado correctamente."));
+    }
+
     [HttpPost("logout")]
     public IActionResult Logout([FromServices] IHttpContextAccessor httpContextAccessor)
     {
-        httpContextAccessor.HttpContext?.Response.Cookies.Delete("jwt");
+        var request = httpContextAccessor.HttpContext?.Request;
+        var isHttps = request?.IsHttps ?? false;
+
+        httpContextAccessor.HttpContext?.Response.Cookies.Delete("jwt", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isHttps, 
+            SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax
+        });
         return Ok(ApiResponse<object>.Ok(null, "Sesión cerrada correctamente"));
     }
 
@@ -52,7 +67,14 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> ForgotPassword(ForgotPasswordCommand command)
     {
         await _bus.InvokeAsync(command);
-        return Ok(ApiResponse<object>.Ok(null, "Si el correo electrónico existe en nuestro sistema, se ha enviado un enlace para restablecer la contraseña."));
+        return Ok(ApiResponse<object>.Ok(null, "Si el correo electrónico existe en nuestro sistema, se ha enviado un código para restablecer la contraseña."));
+    }
+
+    [HttpPost("verify-password-code")]
+    public async Task<IActionResult> VerifyPasswordCode(VerifyPasswordCodeCommand command)
+    {
+        var isValid = await _bus.InvokeAsync<bool>(command);
+        return Ok(ApiResponse<bool>.Ok(isValid, "Código verificado correctamente."));
     }
 
     [HttpPost("reset-password")]
@@ -98,5 +120,16 @@ public class UsersController : ControllerBase
         var imageUrl = await _bus.InvokeAsync<string>(command);
 
         return Ok(ApiResponse<object>.Ok(new { imageUrl }, "Imagen de perfil actualizada correctamente."));
+    }
+
+    [Authorize]
+    [HttpPut("{id}/profile")]
+    public async Task<IActionResult> UpdateProfile(int id, [FromBody] UpdateUserProfileCommand command)
+    {
+        if (id != command.UserId)
+            return BadRequest(ApiResponse<object>.Fail("El ID del usuario no coincide."));
+
+        var success = await _bus.InvokeAsync<bool>(command);
+        return success ? Ok(ApiResponse<object>.Ok(null, "Perfil actualizado correctamente.")) : BadRequest();
     }
 }

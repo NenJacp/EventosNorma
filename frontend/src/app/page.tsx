@@ -2,19 +2,21 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { apiFetch } from "@/lib/api";
 
 export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const session = getSession();
-
-    if (session && session.token) {
-      router.push("/dashboard");
-    } else {
-      router.push("/login");
-    }
+    const checkSession = async () => {
+      try {
+        await apiFetch("/api/Users/currentUser");
+        router.push("/dashboard");
+      } catch {
+        router.push("/login");
+      }
+    };
+    checkSession();
   }, [router]);
 
   return (

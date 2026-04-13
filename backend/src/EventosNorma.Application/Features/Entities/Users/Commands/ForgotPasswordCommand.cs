@@ -22,9 +22,17 @@ public class ForgotPasswordHandler
         await tokenRepository.AddAsync(token);
         await tokenRepository.SaveChangesAsync();
 
-        var body = $"<h1>Hola {user.FirstName}</h1><p>Tu código de verificación es: <b>{code}</b></p><p>Este código expira en 1 hora.</p>";
-        
-        await emailService.SendEmailAsync(user.Email, "Restablecer contraseña - EventosNorma", body);
+        await emailService.SendTemplatedEmailAsync(
+            user.Email,
+            "Restablecer contraseña - EventosNorma",
+            "ResetPassword",
+            new Dictionary<string, string>
+            {
+                { "nombre", user.FirstName },
+                { "codigo", code },
+                { "expiracion", "1 hora" }
+            }
+        );
         
         return true;
     }

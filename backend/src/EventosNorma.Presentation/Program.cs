@@ -2,7 +2,9 @@ using EventosNorma.Infrastructure.Persistence;
 using EventosNorma.Presentation.DependencyInjection;
 using EventosNorma.Presentation.Middleware;
 using FluentValidation;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,31 +41,21 @@ app.UseSwaggerUI();
 // }
 app.UseCors("AllowFrontend");
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads")),
+    RequestPath = "/uploads"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "defaults")),
+    RequestPath = "/defaults"
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var db = services.GetRequiredService<AppDbContext>();
-
-    int retries = 10;
-    while (retries > 0)
-    {
-        try
-        {
-            db.Database.Migrate();
-            break;
-        }
-        catch (Exception)
-        {
-            retries--;
-            if (retries == 0) throw;
-            Thread.Sleep(3000);
-        }
-    }
-}
 
 app.Run();

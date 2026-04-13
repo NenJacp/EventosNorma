@@ -28,17 +28,20 @@ public class LoginHandler
 
         var token = jwtProvider.Generate(user);
 
+        var request = httpContextAccessor.HttpContext?.Request;
+        var isHttps = request?.IsHttps ?? false;
+
         // Configurar la Cookie
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, 
-            SameSite = SameSiteMode.None,
+            Secure = isHttps, 
+            SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
             Expires = DateTime.UtcNow.AddHours(2)
         };
 
         httpContextAccessor.HttpContext?.Response.Cookies.Append("jwt", token, cookieOptions);
 
-        return new LoginViewModel(user.Id, user.FirstName, user.LastName, user.Email, user.Role.ToString());
+        return new LoginViewModel(user.Id, user.FirstName, user.LastName, user.Email, user.Role.ToString(), token);
     }
 }

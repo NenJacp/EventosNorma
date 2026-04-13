@@ -26,6 +26,17 @@ public class EventRepository : IEventRepository
             .FirstOrDefaultAsync(e => e.Id == id);
     }
 
+    public async Task<Event?> GetBySlugAsync(string slug)
+    {
+        return await _context.Events
+            .Include(e => e.City)
+            .Include(e => e.EventCategory)
+            .Include(e => e.EventType)
+            .Include(e => e.Creator)
+            .Include(e => e.Members)
+            .FirstOrDefaultAsync(e => e.Slug == slug);
+    }
+
     public async Task<IEnumerable<Event>> GetAllAsync(bool includeInactive = false)
     {
         var query = _context.Events
@@ -45,6 +56,7 @@ public class EventRepository : IEventRepository
     public async Task<(IEnumerable<Event> Items, int TotalCount)> GetPagedAsync(
         int pageNumber,
         int pageSize,
+        bool includePrivate = false,
         string? title = null,
         int? cityId = null,
         int? stateId = null,
@@ -72,14 +84,13 @@ public class EventRepository : IEventRepository
             .AsQueryable();
 
         // 0. Privacidad y Access Code
-        // Si se provee AccessCode, se busca ignorando si es privado.
-        // Si NO se provee, la aplicación decide antes de llamar a este repositorio,
-        // pero podemos agregar la capa de seguridad de que los privados no se muestran a menos que:
-        // a) El caller haya enviado explícitamente accessCode.
-        // b) El query indique incluir privados por otra forma. Como no lo sabemos aquí puramente en el repositorio sin romper la abstracción,
-        // confiaremos en que la aplicación mandará solo eventos pertinentes o que en un rediseño agregamos currentUserService aquí.
-        // Para simplificar, si no trae AccessCode, por ahora no filtramos IsPrivate porque el Admin necesita verlos.
-        // Si se envía AccessCode, debe hacer match:
+        // Regla: si no se provee AccessCode y el caller no puede incluir privados, ocultarlos.
+        if (string.IsNullOrWhiteSpace(accessCode) && !includePrivate)
+        {
+            query = query.Where(e => !e.IsPrivate);
+        }
+
+        // Si se envía AccessCode, debe hacer match exacto:
         if (!string.IsNullOrWhiteSpace(accessCode))
         {
             query = query.Where(e => e.AccessCode == accessCode);
