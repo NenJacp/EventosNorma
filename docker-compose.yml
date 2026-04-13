@@ -40,7 +40,6 @@ services:
       - .env
     ports:
       - "3003:3001"
-      - "3004:3001"
     depends_on:
       - backend
     networks:
