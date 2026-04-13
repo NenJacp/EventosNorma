@@ -14,17 +14,30 @@ public class JoinEventHandler
 
         if (@event == null) throw new KeyNotFoundException("Evento no encontrado");
 
-        // REGLA DE NEGOCIO: No puedes unirte a tu propio evento
+        if (@event.Status == Domain.Enums.EventStatus.Cancelled)
+        {
+            throw new InvalidOperationException("No puedes unirte a un evento cancelado.");
+        }
+
+        if (!@event.IsActive)
+        {
+            throw new InvalidOperationException("Este evento no está disponible.");
+        }
+
         if (@event.CreatedById == userId)
         {
             throw new InvalidOperationException("No puedes suscribirte a un evento creado por ti mismo.");
         }
 
-        // Verificar si ya está unido
+        var isBanned = @event.Members.Any(m => m.UserId == userId && m.IsBanned);
+        if (isBanned)
+        {
+            throw new InvalidOperationException("Has sido baneado de este evento y no puedes unirte.");
+        }
+
         var alreadyMember = @event.Members.Any(m => m.UserId == userId && m.ExitedAt == null);
         if (alreadyMember) return true;
 
-        // Verificar capacidad
         var activeMembers = @event.Members.Count(m => m.ExitedAt == null);
         if (activeMembers >= @event.MaxCapacity)
         {

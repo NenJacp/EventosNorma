@@ -19,7 +19,7 @@ RUN dotnet publish src/EventosNorma.Presentation/EventosNorma.Presentation.cspro
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim
 WORKDIR /app
 COPY --from=build /out .
-RUN mkdir -p wwwroot/uploads/users wwwroot/uploads/events
-COPY wwwroot/uploads/users/defaultprofile.png wwwroot/uploads/users/defaultprofile.png
-COPY wwwroot/uploads/events/defaultprofile.png wwwroot/uploads/events/defaultprofile.png
+RUN mkdir -p wwwroot/defaults
+COPY wwwroot/defaults/profile.png wwwroot/defaults/profile.png
+COPY wwwroot/defaults/event.png wwwroot/defaults/event.png
 ENTRYPOINT ["dotnet", "EventosNorma.Presentation.dll"]

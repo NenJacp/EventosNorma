@@ -11,7 +11,8 @@ public class GetEventsPagedHandler
         IEventRepository eventRepository,
         ICurrentUserService currentUserService)
     {
-        // Si no es admin, forzar IsActive = true
+        var userId = currentUserService.UserId ?? 0;
+        
         bool? isActiveFilter = currentUserService.IsAdmin ? query.IsActive : true;
 
         int? excludeCreatedById = query.ExcludeCreatedById;
@@ -20,12 +21,6 @@ public class GetEventsPagedHandler
             excludeCreatedById = currentUserService.UserId;
         }
 
-        // includePrivate: 
-        // - true si es admin
-        // - true si está buscando por CreatedById (mis eventos creados)
-        // - true si está buscando por JoinedByUserId (eventos donde está inscrito)
-        // - false si busca por AccessCode (ya maneja su propia lógica en el repo)
-        // - false en caso contrario (home)
         bool includePrivate = currentUserService.IsAdmin 
             || query.CreatedById.HasValue 
             || query.JoinedByUserId.HasValue;
@@ -52,8 +47,23 @@ public class GetEventsPagedHandler
             query.SortBy,
             query.IsAscending);
 
-        var userId = currentUserService.UserId ?? 0;
-        var viewModels = items.Select(e => {
+        var filteredItems = items.AsEnumerable();
+
+        if (query.ExcludeJoinedEvents == true && userId > 0)
+        {
+            filteredItems = filteredItems.Where(e => 
+                !e.Members.Any(m => m.UserId == userId && m.ExitedAt == null));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var searchLower = query.Search.ToLowerInvariant();
+            filteredItems = filteredItems.Where(e =>
+                e.Title.ToLowerInvariant().Contains(searchLower) ||
+                e.Description.ToLowerInvariant().Contains(searchLower));
+        }
+
+        var viewModels = filteredItems.Select(e => {
             var isMember = e.Members.Any(m => m.UserId == userId && m.ExitedAt == null);
             var isCreator = e.CreatedById == userId;
             var showAccessCode = currentUserService.IsAdmin || isCreator || isMember || query.AccessCode == e.AccessCode;
@@ -82,7 +92,7 @@ public class GetEventsPagedHandler
 
         return new PagedList<EventViewModel>(
             viewModels,
-            totalCount,
+            filteredItems.Count(),
             query.PageNumber,
             query.PageSize);
     }

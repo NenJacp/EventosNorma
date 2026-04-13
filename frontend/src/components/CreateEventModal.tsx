@@ -12,26 +12,18 @@ import {
 } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast";
-import type {
-  CityViewModel,
-  StateViewModel,
-  CountryViewModel,
-  EventCategoryViewModel,
-  EventTypeViewModel,
-} from "@/types/catalogs";
+import type { CityViewModel, StateViewModel, CountryViewModel, EventCategoryViewModel, EventTypeViewModel } from "@/types/catalogs";
+import type { EventViewModel } from "@/types/events";
 
 interface CreateEventModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  editEvent?: EventViewModel | null;
 }
 
-export default function CreateEventModal({
-  isOpen,
-  onClose,
-  onSuccess,
-}: CreateEventModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
+export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent }: CreateEventModalProps) {
+  const modalRef = useRef<HTMLDialogElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
@@ -46,6 +38,8 @@ export default function CreateEventModal({
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [initialCityId, setInitialCityId] = useState<string>("");
 
   const [form, setForm] = useState({
     title: "",
@@ -81,28 +75,30 @@ export default function CreateEventModal({
     };
   }, [isOpen]);
 
-  const resetForm = () => {
-    setForm({
-      title: "",
-      description: "",
-      startDate: "",
-      startTime: "",
-      endDate: "",
-      endTime: "",
-      locationDetail: "",
-      cityId: "",
-      eventCategoryId: "",
-      eventTypeId: "",
-      maxCapacity: "",
-      isPrivate: false,
-    });
-    setSelectedCountry("");
-    setSelectedState("");
-    setStates([]);
-    setCities([]);
-    setImagePreview(null);
-    setCreatedEvent(null);
-  };
+  useEffect(() => {
+    if (editEvent) {
+      const startDate = new Date(editEvent.startDate);
+      const endDate = new Date(editEvent.endDate);
+      
+      setForm({
+        title: editEvent.title,
+        description: editEvent.description || "",
+        startDate: startDate.toISOString().split("T")[0],
+        startTime: startDate.toTimeString().slice(0, 5),
+        endDate: endDate.toISOString().split("T")[0],
+        endTime: endDate.toTimeString().slice(0, 5),
+        locationDetail: editEvent.locationDetail || "",
+        cityId: "",
+        eventCategoryId: "",
+        eventTypeId: "",
+        maxCapacity: editEvent.maxCapacity.toString(),
+        isPrivate: editEvent.isPrivate,
+      });
+      
+      setImagePreview(editEvent.imageUrl || null);
+      setInitialCityId("");
+    }
+  }, [editEvent]);
 
   const loadCatalogs = async () => {
     try {
@@ -209,6 +205,7 @@ export default function CreateEventModal({
           : new Date(form.endDate).toISOString();
 
       const payload = {
+        id: editEvent?.id,
         title: form.title,
         description: form.description || null,
         startDate: startDateTime,
@@ -222,8 +219,12 @@ export default function CreateEventModal({
         imageUrl: imagePreview,
       };
 
-      const res = await fetch("/api/events", {
-        method: "POST",
+      const isEditing = !!editEvent;
+      const url = isEditing ? `/api/events/${editEvent!.id}` : "/api/events";
+      const method = isEditing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
@@ -234,17 +235,23 @@ export default function CreateEventModal({
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setCreatedEvent({
-          slug: data.data.slug,
-          accessCode: data.data.accessCode,
-          isPrivate: data.data.isPrivate,
-        });
-        toast.success(data.message || "Evento creado correctamente");
+        if (isEditing) {
+          toast.success(data.message || "Evento actualizado correctamente");
+          onSuccess();
+          handleClose();
+        } else {
+          setCreatedEvent({
+            slug: data.data.slug,
+            accessCode: data.data.accessCode,
+            isPrivate: data.data.isPrivate
+          });
+          toast.success(data.message || "Evento creado correctamente");
+        }
       } else {
-        toast.error(data.message || "Error al crear evento");
+        toast.error(data.message || `Error al ${isEditing ? "actualizar" : "crear"} evento`);
       }
     } catch (err: any) {
-      toast.error(err.message || "Error al crear evento");
+      toast.error(err.message || `Error al ${editEvent ? "actualizar" : "crear"} evento`);
     } finally {
       setLoading(false);
     }

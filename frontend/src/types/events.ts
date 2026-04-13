@@ -25,7 +25,7 @@ export interface EventViewModel {
   showJoinButton?: boolean;
 }
 
-export type EventStatus = "Draft" | "Published" | "Cancelled" | "Closed";
+export type EventStatus = "Draft" | "Published" | "Cancelled" | "Closed" | "Open";
 
 export interface PagedList<T> {
   items: T[];

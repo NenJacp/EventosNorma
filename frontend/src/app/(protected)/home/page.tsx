@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  CalendarDays,
-  Lock,
-  ChevronRight,
-  Sparkles,
-  Ticket,
-} from "lucide-react";
+import { Search, Lock } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import EventCard from "@/components/EventCard";
 import Pagination from "@/components/Pagination";
@@ -24,15 +18,17 @@ export default function HomePage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [showCodeModal, setShowCodeModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchEvents = async (page: number) => {
+  const fetchEvents = async (page: number, search: string = "") => {
     setLoading(true);
 
     try {
-      const data = await apiFetch<EventsResponse>(
-        `/api/events?PageNumber=${page}&PageSize=12&IsActive=true`
-      );
-
+      let url = `/api/events?PageNumber=${page}&PageSize=12&IsActive=true&ExcludeJoinedEvents=true`;
+      if (search.trim()) {
+        url += `&Search=${encodeURIComponent(search.trim())}`;
+      }
+      const data = await apiFetch<EventsResponse>(url);
       setEvents(data.items || []);
       setTotalPages(data.totalPages || 1);
       setTotalCount(data.totalCount || 0);
@@ -49,11 +45,16 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    fetchEvents(1);
+    fetchEvents(1, searchQuery);
   }, []);
 
   const handlePageChange = (page: number) => {
-    fetchEvents(page);
+    fetchEvents(page, searchQuery);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchEvents(1, searchQuery);
   };
 
   const handleCodeModalSuccess = (eventData: EventViewModel) => {

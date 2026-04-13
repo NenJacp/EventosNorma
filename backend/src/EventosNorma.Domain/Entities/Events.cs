@@ -7,7 +7,7 @@ using EventosNorma.Domain.Interfaces;
 
 public class Event : IAuditableEntity
 {
-    public const string DefaultEventImage = "/uploads/events/defaultprofile.png";
+    public const string DefaultEventImage = "/defaults/event.png";
 
     // 1. Identidad
     public int Id { get; private set; }
@@ -95,6 +95,24 @@ public class Event : IAuditableEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void ReopenEvent()
+    {
+        if (Status != EventStatus.Cancelled)
+        {
+            throw new InvalidOperationException("Solo los eventos cancelados pueden ser reabiertos.");
+        }
+        
+        if (StartDate <= DateTime.UtcNow)
+        {
+            throw new InvalidOperationException("No se puede reabrir un evento cuya fecha de inicio ya ha pasado.");
+        }
+        
+        Status = EventStatus.Open;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public bool CanBeReopened => Status == EventStatus.Cancelled && StartDate > DateTime.UtcNow;
+
     public void RegenerateAccessCode()
     {
         if (!IsPrivate) throw new InvalidOperationException("Solo los eventos privados pueden tener código de acceso.");
@@ -113,7 +131,7 @@ public class Event : IAuditableEntity
         slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\s-]", "");
         slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
         slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
-        return slug.Trim('-') + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
+        return slug.Trim('-');
     }
 
     public void Deactivate()

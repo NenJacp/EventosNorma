@@ -18,7 +18,7 @@ public partial class User : IAuditableEntity
     [GeneratedRegex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$")]
     private static partial Regex PasswordRegex();
 
-    public const string DefaultProfileImage = "/uploads/users/defaultprofile.png";
+    public const string DefaultProfileImage = "/defaults/profile.png";
     public const string PasswordRequirementsMessage = "La contraseña debe tener al menos 8 caracteres, incluir una letra mayúscula, una letra minúscula, un número y un carácter especial.";
 
     // 1. Identidad
