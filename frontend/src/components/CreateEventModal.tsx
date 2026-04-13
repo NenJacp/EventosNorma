@@ -1,10 +1,24 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { X, Calendar, MapPin, Users, Lock, ImagePlus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  X,
+  Calendar,
+  MapPin,
+  Users,
+  Lock,
+  ImagePlus,
+  CheckCircle2,
+} from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast";
-import type { CityViewModel, StateViewModel, CountryViewModel, EventCategoryViewModel, EventTypeViewModel } from "@/types/catalogs";
+import type {
+  CityViewModel,
+  StateViewModel,
+  CountryViewModel,
+  EventCategoryViewModel,
+  EventTypeViewModel,
+} from "@/types/catalogs";
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -12,12 +26,17 @@ interface CreateEventModalProps {
   onSuccess: () => void;
 }
 
-export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModalProps) {
-  const modalRef = useRef<HTMLDialogElement>(null);
+export default function CreateEventModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: CreateEventModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [loading, setLoading] = useState(false);
   const [loadingImage, setLoadingImage] = useState(false);
-  
+
   const [countries, setCountries] = useState<CountryViewModel[]>([]);
   const [states, setStates] = useState<StateViewModel[]>([]);
   const [cities, setCities] = useState<CityViewModel[]>([]);
@@ -27,7 +46,6 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -44,16 +62,47 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
     isPrivate: false,
   });
 
-  const [createdEvent, setCreatedEvent] = useState<{ slug: string; accessCode?: string; isPrivate: boolean } | null>(null);
+  const [createdEvent, setCreatedEvent] = useState<{
+    slug: string;
+    accessCode?: string;
+    isPrivate: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      modalRef.current?.showModal();
       loadCatalogs();
+      document.body.style.overflow = "hidden";
     } else {
-      modalRef.current?.close();
+      document.body.style.overflow = "";
     }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isOpen]);
+
+  const resetForm = () => {
+    setForm({
+      title: "",
+      description: "",
+      startDate: "",
+      startTime: "",
+      endDate: "",
+      endTime: "",
+      locationDetail: "",
+      cityId: "",
+      eventCategoryId: "",
+      eventTypeId: "",
+      maxCapacity: "",
+      isPrivate: false,
+    });
+    setSelectedCountry("");
+    setSelectedState("");
+    setStates([]);
+    setCities([]);
+    setImagePreview(null);
+    setCreatedEvent(null);
+  };
 
   const loadCatalogs = async () => {
     try {
@@ -62,6 +111,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
         apiFetch<EventCategoryViewModel[]>("/api/eventcategories"),
         apiFetch<EventTypeViewModel[]>("/api/eventtypes"),
       ]);
+
       setCountries(countriesRes || []);
       setCategories(categoriesRes || []);
       setTypes(typesRes || []);
@@ -77,33 +127,37 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
   const loadStates = async (countryId: string) => {
     setSelectedState("");
     setCities([]);
-    setForm({ ...form, cityId: "" });
-    
+    setForm((prev) => ({ ...prev, cityId: "" }));
+
     if (!countryId) {
       setStates([]);
       return;
     }
 
     try {
-      const statesRes = await apiFetch<StateViewModel[]>(`/api/states/country/${countryId}`);
+      const statesRes = await apiFetch<StateViewModel[]>(
+        `/api/states/country/${countryId}`
+      );
       setStates(statesRes || []);
-    } catch (err) {
+    } catch {
       toast.error("Error al cargar estados");
     }
   };
 
   const loadCities = async (stateId: string) => {
-    setForm({ ...form, cityId: "" });
-    
+    setForm((prev) => ({ ...prev, cityId: "" }));
+
     if (!stateId) {
       setCities([]);
       return;
     }
 
     try {
-      const citiesRes = await apiFetch<CityViewModel[]>(`/api/cities/state/${stateId}`);
+      const citiesRes = await apiFetch<CityViewModel[]>(
+        `/api/cities/state/${stateId}`
+      );
       setCities(citiesRes || []);
-    } catch (err) {
+    } catch {
       toast.error("Error al cargar ciudades");
     }
   };
@@ -113,6 +167,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
     if (!file) return;
 
     setLoadingImage(true);
+
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -124,13 +179,13 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
       });
 
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.message || "Error al subir imagen");
       }
 
       setImagePreview(data.data.imageUrl);
-      setSelectedFile(file);
+      toast.success("Imagen subida correctamente");
     } catch (err: any) {
       toast.error(err.message || "Error al subir imagen");
     } finally {
@@ -143,13 +198,15 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
     setLoading(true);
 
     try {
-      const startDateTime = form.startDate && form.startTime 
-        ? new Date(`${form.startDate}T${form.startTime}:00`).toISOString()
-        : new Date(form.startDate).toISOString();
-      
-      const endDateTime = form.endDate && form.endTime 
-        ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString()
-        : new Date(form.endDate).toISOString();
+      const startDateTime =
+        form.startDate && form.startTime
+          ? new Date(`${form.startDate}T${form.startTime}:00`).toISOString()
+          : new Date(form.startDate).toISOString();
+
+      const endDateTime =
+        form.endDate && form.endTime
+          ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString()
+          : new Date(form.endDate).toISOString();
 
       const payload = {
         title: form.title,
@@ -175,12 +232,12 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
       });
 
       const data = await res.json();
-      
+
       if (res.ok && data.success) {
         setCreatedEvent({
           slug: data.data.slug,
           accessCode: data.data.accessCode,
-          isPrivate: data.data.isPrivate
+          isPrivate: data.data.isPrivate,
         });
         toast.success(data.message || "Evento creado correctamente");
       } else {
@@ -197,32 +254,12 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
     if (createdEvent) {
       onSuccess();
     }
-    setForm({
-      title: "",
-      description: "",
-      startDate: "",
-      startTime: "",
-      endDate: "",
-      endTime: "",
-      locationDetail: "",
-      cityId: "",
-      eventCategoryId: "",
-      eventTypeId: "",
-      maxCapacity: "",
-      isPrivate: false,
-    });
-    setSelectedCountry("");
-    setSelectedState("");
-    setCities([]);
-    setStates([]);
-    setImagePreview(null);
-    setSelectedFile(null);
-    setCreatedEvent(null);
+    resetForm();
     onClose();
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === modalRef.current) {
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === modalRef.current && !loading) {
       handleClose();
     }
   };
@@ -231,33 +268,46 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
 
   if (createdEvent) {
     return (
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-        onClick={handleClose}
+      <div
+        ref={modalRef}
+        onClick={handleBackdropClick}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
       >
-        <div 
-          className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6"
+        <div
           onClick={(e) => e.stopPropagation()}
+          className="w-full max-w-md rounded-[28px] bg-white p-7 shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
         >
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+              <CheckCircle2 size={30} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Evento creado exitosamente</h3>
+
+            <h3 className="mt-4 text-2xl font-extrabold text-slate-900">
+              Evento creado
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Tu evento se guardó correctamente en la plataforma.
+            </p>
+
             {createdEvent.isPrivate && createdEvent.accessCode && (
-              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-sm text-amber-700 mb-2">Código de acceso para tu evento privado:</p>
-                <p className="text-2xl font-mono font-bold text-amber-900 tracking-widest">{createdEvent.accessCode}</p>
-                <p className="text-xs text-amber-600 mt-2">Comparte este código con las personas que quieras invitar</p>
+              <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm font-semibold text-amber-800">
+                  Código de acceso
+                </p>
+                <p className="mt-2 font-mono text-3xl font-extrabold tracking-[0.25em] text-amber-900">
+                  {createdEvent.accessCode}
+                </p>
+                <p className="mt-2 text-xs text-amber-700">
+                  Compártelo solo con tus invitados.
+                </p>
               </div>
             )}
+
             <button
               onClick={handleClose}
-              className="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="mt-6 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 px-4 py-3.5 text-sm font-bold text-white transition hover:from-blue-500 hover:to-blue-700"
             >
-              Ir al evento
+              Continuar
             </button>
           </div>
         </div>
@@ -266,323 +316,394 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
   }
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+    <div
+      ref={modalRef}
       onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-3 py-4 backdrop-blur-sm"
     >
-      <div 
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+      <div
         onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-[30px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
       >
-        <div className="flex items-center justify-between p-4 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">Crear nuevo evento</h2>
+        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
+              Nuevo evento
+            </p>
+            <h2 className="mt-1 text-2xl font-extrabold text-slate-900">
+              Crear evento
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Completa la información para publicar tu evento.
+            </p>
+          </div>
+
           <button
             onClick={handleClose}
             disabled={loading}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+            className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
           >
-            <X size={20} className="text-slate-500" />
+            <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Título del evento *
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 space-y-6 overflow-y-auto px-6 py-6">
+            <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4">
+              <label className="mb-3 block text-sm font-semibold text-slate-800">
+                Portada del evento
               </label>
+
               <input
-                type="text"
-                required
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleImageSelect}
                 disabled={loading}
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                placeholder="Nombre de tu evento"
+                className="hidden"
               />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Descripción
-              </label>
-              <textarea
-                disabled={loading}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                rows={3}
-                placeholder="Describe tu evento..."
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Fecha de inicio *
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    required
-                    disabled={loading}
-                    value={form.startDate}
-                    onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                  />
-                  <input
-                    type="time"
-                    required
-                    disabled={loading}
-                    value={form.startTime}
-                    onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                    className="w-28 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Fecha de fin *
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    required
-                    disabled={loading}
-                    value={form.endDate}
-                    onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                  />
-                  <input
-                    type="time"
-                    required
-                    disabled={loading}
-                    value={form.endTime}
-                    onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                    className="w-28 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  País *
-                </label>
-                <select
-                  required
-                  disabled={loading}
-                  value={selectedCountry}
-                  onChange={(e) => {
-                    setSelectedCountry(e.target.value);
-                    loadStates(e.target.value);
-                  }}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                >
-                  <option value="">Selecciona...</option>
-                  {countries.map((country) => (
-                    <option key={country.id} value={country.id}>
-                      {country.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Estado *
-                </label>
-                <select
-                  required
-                  disabled={loading || !selectedCountry}
-                  value={selectedState}
-                  onChange={(e) => {
-                    setSelectedState(e.target.value);
-                    loadCities(e.target.value);
-                  }}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                >
-                  <option value="">Selecciona...</option>
-                  {states.map((state) => (
-                    <option key={state.id} value={state.id}>
-                      {state.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Ciudad *
-                </label>
-                <select
-                  required
-                  disabled={loading || !selectedState}
-                  value={form.cityId}
-                  onChange={(e) => setForm({ ...form, cityId: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                >
-                  <option value="">Selecciona...</option>
-                  {cities.map((city) => (
-                    <option key={city.id} value={city.id}>
-                      {city.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Categoría *
-                </label>
-                <select
-                  required
-                  disabled={loading}
-                  value={form.eventCategoryId}
-                  onChange={(e) => setForm({ ...form, eventCategoryId: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                >
-                  <option value="">Selecciona...</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Tipo *
-                </label>
-                <select
-                  required
-                  disabled={loading}
-                  value={form.eventTypeId}
-                  onChange={(e) => setForm({ ...form, eventTypeId: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                >
-                  <option value="">Selecciona...</option>
-                  {types.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                <MapPin size={14} className="inline mr-1" />
-                Dirección / Ubicación
-              </label>
-              <input
-                type="text"
-                disabled={loading}
-                value={form.locationDetail}
-                onChange={(e) => setForm({ ...form, locationDetail: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                placeholder="Dirección del evento"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                <ImagePlus size={14} className="inline mr-1" />
-                Imagen del evento
-              </label>
-              <div className="flex items-center gap-4">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  disabled={loading}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={loading || loadingImage}
-                  className="px-4 py-2 border border-dashed border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingImage ? (
-                    <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <ImagePlus size={18} />
-                  )}
-                  Subir imagen
-                </button>
-                {imagePreview && (
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-100">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading || loadingImage}
+                className="flex w-full items-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-left transition hover:border-blue-300 hover:bg-blue-50/40 disabled:opacity-50"
+              >
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
+                  {imagePreview ? (
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-cover"
                     />
-                  </div>
-                )}
-              </div>
+                  ) : (
+                    <ImagePlus size={24} className="text-slate-400" />
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-slate-800">
+                    {loadingImage ? "Subiendo imagen..." : "Subir imagen"}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Agrega una portada para que tu evento se vea mejor.
+                  </p>
+                </div>
+              </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  <Users size={14} className="inline mr-1" />
-                  Capacidad máxima *
+                <label className="mb-2 block text-sm font-semibold text-slate-800">
+                  Título del evento *
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   required
                   disabled={loading}
-                  min={1}
-                  value={form.maxCapacity}
-                  onChange={(e) => setForm({ ...form, maxCapacity: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                  placeholder="Ej: 100"
+                  value={form.title}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, title: e.target.value }))
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100"
+                  placeholder="Nombre de tu evento"
                 />
               </div>
-              <div className="flex items-center">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    disabled={loading}
-                    checked={form.isPrivate}
-                    onChange={(e) => setForm({ ...form, isPrivate: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 disabled:cursor-not-allowed"
-                  />
-                  <span className="flex items-center gap-1 text-sm text-slate-700">
-                    <Lock size={14} />
-                    Evento privado
-                  </span>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-800">
+                  Descripción
                 </label>
+                <textarea
+                  disabled={loading}
+                  rows={4}
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100"
+                  placeholder="Describe tu evento..."
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                    <Calendar size={15} className="text-blue-600" />
+                    Inicio *
+                  </label>
+                  <div className="grid grid-cols-[1fr_120px] gap-2">
+                    <input
+                      type="date"
+                      required
+                      disabled={loading}
+                      value={form.startDate}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          startDate: e.target.value,
+                        }))
+                      }
+                      className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                    <input
+                      type="time"
+                      required
+                      disabled={loading}
+                      value={form.startTime}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          startTime: e.target.value,
+                        }))
+                      }
+                      className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                    <Calendar size={15} className="text-blue-600" />
+                    Fin *
+                  </label>
+                  <div className="grid grid-cols-[1fr_120px] gap-2">
+                    <input
+                      type="date"
+                      required
+                      disabled={loading}
+                      value={form.endDate}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          endDate: e.target.value,
+                        }))
+                      }
+                      className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                    <input
+                      type="time"
+                      required
+                      disabled={loading}
+                      value={form.endTime}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          endTime: e.target.value,
+                        }))
+                      }
+                      className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-800">
+                    País *
+                  </label>
+                  <select
+                    required
+                    disabled={loading}
+                    value={selectedCountry}
+                    onChange={(e) => {
+                      setSelectedCountry(e.target.value);
+                      loadStates(e.target.value);
+                    }}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  >
+                    <option value="">Selecciona...</option>
+                    {countries.map((country) => (
+                      <option key={country.id} value={country.id}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-800">
+                    Estado *
+                  </label>
+                  <select
+                    required
+                    disabled={loading || !selectedCountry}
+                    value={selectedState}
+                    onChange={(e) => {
+                      setSelectedState(e.target.value);
+                      loadCities(e.target.value);
+                    }}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  >
+                    <option value="">Selecciona...</option>
+                    {states.map((state) => (
+                      <option key={state.id} value={state.id}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-800">
+                    Ciudad *
+                  </label>
+                  <select
+                    required
+                    disabled={loading || !selectedState}
+                    value={form.cityId}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, cityId: e.target.value }))
+                    }
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  >
+                    <option value="">Selecciona...</option>
+                    {cities.map((city) => (
+                      <option key={city.id} value={city.id}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <MapPin size={15} className="text-blue-600" />
+                  Dirección / ubicación
+                </label>
+                <input
+                  type="text"
+                  disabled={loading}
+                  value={form.locationDetail}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      locationDetail: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  placeholder="Dirección del evento"
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-800">
+                    Categoría *
+                  </label>
+                  <select
+                    required
+                    disabled={loading}
+                    value={form.eventCategoryId}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        eventCategoryId: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  >
+                    <option value="">Selecciona...</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-800">
+                    Tipo *
+                  </label>
+                  <select
+                    required
+                    disabled={loading}
+                    value={form.eventTypeId}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        eventTypeId: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  >
+                    <option value="">Selecciona...</option>
+                    {types.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                    <Users size={15} className="text-blue-600" />
+                    Capacidad máxima *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    disabled={loading}
+                    value={form.maxCapacity}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        maxCapacity: e.target.value,
+                      }))
+                    }
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    placeholder="Ej: 100"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      isPrivate: !prev.isPrivate,
+                    }))
+                  }
+                  disabled={loading}
+                  className={`flex h-[50px] items-center gap-2 rounded-2xl px-4 text-sm font-semibold transition ${
+                    form.isPrivate
+                      ? "bg-blue-600 text-white"
+                      : "border border-slate-200 bg-slate-50 text-slate-700"
+                  }`}
+                >
+                  <Lock size={15} />
+                  {form.isPrivate ? "Privado" : "Público"}
+                </button>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-200">
+          <div className="flex flex-col gap-3 border-t border-slate-200 bg-white px-6 py-4 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
             >
               Cancelar
             </button>
+
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-3 text-sm font-bold text-white transition hover:from-blue-500 hover:to-blue-700 disabled:opacity-60"
             >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Creando...
-                </>
-              ) : (
-                "Crear evento"
-              )}
+              {loading ? "Creando..." : "Crear evento"}
             </button>
           </div>
         </form>
