@@ -261,7 +261,6 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
     if (createdEvent) {
       onSuccess();
     }
-    resetForm();
     onClose();
   };
 
