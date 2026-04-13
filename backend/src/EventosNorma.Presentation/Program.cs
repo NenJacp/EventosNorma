@@ -47,6 +47,12 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads"
 });
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "defaults")),
+    RequestPath = "/defaults"
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
