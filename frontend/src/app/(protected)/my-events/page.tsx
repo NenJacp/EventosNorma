@@ -16,6 +16,8 @@ export default function MyEventsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<EventViewModel | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const fetchMyEvents = async (page: number) => {
     setLoading(true);
@@ -49,6 +51,43 @@ export default function MyEventsPage() {
   const handleEventCreated = () => {
     fetchMyEvents(1);
     setCurrentPage(1);
+  };
+
+  const handleEdit = (id: number) => {
+    const event = events.find(e => e.id === id);
+    if (event) {
+      setEditingEvent(event);
+      setShowModal(true);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.")) return;
+    
+    setDeletingId(id);
+    try {
+      await apiFetch(`/api/events/${id}`, { method: "DELETE" });
+      toast.success("Evento eliminado correctamente");
+      fetchMyEvents(currentPage);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("No se pudo eliminar el evento");
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setEditingEvent(null);
+  };
+
+  const handleModalSuccess = () => {
+    fetchMyEvents(currentPage);
+    setEditingEvent(null);
   };
 
   return (
@@ -106,7 +145,11 @@ export default function MyEventsPage() {
                 currentCapacity={event.currentCapacity}
                 showCapacity={true}
                 imageUrl={event.imageUrl}
+                displayImageUrl={event.displayImageUrl}
                 isPrivate={event.isPrivate}
+                isCreator={true}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
               />
             ))}
           </div>
@@ -123,8 +166,9 @@ export default function MyEventsPage() {
 
       <CreateEventModal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSuccess={handleEventCreated}
+        onClose={handleModalClose}
+        onSuccess={handleModalSuccess}
+        editEvent={editingEvent}
       />
     </div>
   );

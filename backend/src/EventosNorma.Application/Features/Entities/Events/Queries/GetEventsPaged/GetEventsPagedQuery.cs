@@ -5,6 +5,7 @@ namespace EventosNorma.Application.Features.Entities.Events.Queries;
 public record GetEventsPagedQuery : PaginationParams
 {
     public string? Title { get; init; }
+    public string? Search { get; init; }
     public int? CityId { get; init; }
     public int? StateId { get; init; }
     public int? CountryId { get; init; }
@@ -19,4 +20,5 @@ public record GetEventsPagedQuery : PaginationParams
     public bool? OnlyAvailable { get; init; }
     public bool? IsActive { get; init; }
     public string? AccessCode { get; init; }
+    public bool? ExcludeJoinedEvents { get; init; }
 }

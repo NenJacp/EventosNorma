@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Search, Lock } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import EventCard from "@/components/EventCard";
 import Pagination from "@/components/Pagination";
 import JoinByCodeModal from "@/components/JoinByCodeModal";
 import { toast } from "@/lib/toast";
-import { Lock } from "lucide-react";
 import type { EventViewModel, EventsResponse } from "@/types/events";
 
 export default function HomePage() {
@@ -18,13 +18,16 @@ export default function HomePage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [showCodeModal, setShowCodeModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchEvents = async (page: number) => {
+  const fetchEvents = async (page: number, search: string = "") => {
     setLoading(true);
     try {
-      const data = await apiFetch<EventsResponse>(
-        `/api/events?PageNumber=${page}&PageSize=12&IsActive=true`
-      );
+      let url = `/api/events?PageNumber=${page}&PageSize=12&IsActive=true&ExcludeJoinedEvents=true`;
+      if (search.trim()) {
+        url += `&Search=${encodeURIComponent(search.trim())}`;
+      }
+      const data = await apiFetch<EventsResponse>(url);
       setEvents(data.items || []);
       setTotalPages(data.totalPages || 1);
       setTotalCount(data.totalCount || 0);
@@ -41,11 +44,16 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    fetchEvents(1);
+    fetchEvents(1, searchQuery);
   }, []);
 
   const handlePageChange = (page: number) => {
-    fetchEvents(page);
+    fetchEvents(page, searchQuery);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchEvents(1, searchQuery);
   };
 
   const handleCodeModalSuccess = (eventData: EventViewModel) => {
@@ -64,6 +72,17 @@ export default function HomePage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-4">
+          <form onSubmit={handleSearch} className="relative">
+            <input
+              type="text"
+              placeholder="Buscar eventos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full md:w-64 pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          </form>
+
           <button
             onClick={() => setShowCodeModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-200 transition-colors shadow-sm"
@@ -91,7 +110,9 @@ export default function HomePage() {
         </div>
       ) : events.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-slate-500">No hay eventos disponibles</p>
+          <p className="text-slate-500">
+            {searchQuery ? "No se encontraron eventos con esa búsqueda" : "No hay eventos disponibles"}
+          </p>
         </div>
       ) : (
         <>
@@ -111,6 +132,7 @@ export default function HomePage() {
                 currentCapacity={event.currentCapacity}
                 showCapacity={false}
                 imageUrl={event.imageUrl}
+                displayImageUrl={event.displayImageUrl}
                 isPrivate={event.isPrivate}
               />
             ))}

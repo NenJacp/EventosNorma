@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, MapPin, Users, Lock } from "lucide-react";
+import { Calendar, MapPin, Users, Lock, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 export interface EventCardProps {
@@ -19,6 +19,9 @@ export interface EventCardProps {
   imageUrl?: string;
   displayImageUrl?: string;
   isPrivate?: boolean;
+  isCreator?: boolean;
+  onEdit?: (id: number) => void;
+  onDelete?: (id: number) => void;
 }
 
 const categoryColors: Record<string, string> = {
@@ -45,6 +48,9 @@ export default function EventCard({
   imageUrl,
   displayImageUrl,
   isPrivate = false,
+  isCreator = false,
+  onEdit,
+  onDelete,
 }: EventCardProps) {
   const tagClass = categoryColors[categoryName] || categoryColors.default;
   const availableSlots = maxCapacity - currentCapacity;
@@ -61,15 +67,45 @@ export default function EventCard({
     return date.toLocaleDateString("es-MX", options);
   };
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit?.(id);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete?.(id);
+  };
+
   return (
     <Link href={`/events/${slug}`} className="group block">
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-        <div className="w-full h-32 overflow-hidden bg-slate-100">
+        <div className="w-full h-32 overflow-hidden bg-slate-100 relative">
           <img 
             src={imageToShow || "/uploads/events/defaultprofile.png"} 
             alt={title}
             className="w-full h-full object-cover"
           />
+          {isCreator && (
+            <div className="absolute top-2 right-2 flex gap-1">
+              <button
+                onClick={handleEditClick}
+                className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-sm transition-colors"
+                title="Editar evento"
+              >
+                <Pencil size={14} className="text-slate-600" />
+              </button>
+              <button
+                onClick={handleDeleteClick}
+                className="p-1.5 bg-white/90 hover:bg-red-50 rounded-lg shadow-sm transition-colors"
+                title="Eliminar evento"
+              >
+                <Trash2 size={14} className="text-red-500" />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="p-3.5">

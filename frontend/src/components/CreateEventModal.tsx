@@ -5,14 +5,16 @@ import { X, Calendar, MapPin, Users, Lock, ImagePlus } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast";
 import type { CityViewModel, StateViewModel, CountryViewModel, EventCategoryViewModel, EventTypeViewModel } from "@/types/catalogs";
+import type { EventViewModel } from "@/types/events";
 
 interface CreateEventModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  editEvent?: EventViewModel | null;
 }
 
-export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModalProps) {
+export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent }: CreateEventModalProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -28,6 +30,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
   const [selectedState, setSelectedState] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [initialCityId, setInitialCityId] = useState<string>("");
 
   const [form, setForm] = useState({
     title: "",
@@ -54,6 +57,31 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
       modalRef.current?.close();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (editEvent) {
+      const startDate = new Date(editEvent.startDate);
+      const endDate = new Date(editEvent.endDate);
+      
+      setForm({
+        title: editEvent.title,
+        description: editEvent.description || "",
+        startDate: startDate.toISOString().split("T")[0],
+        startTime: startDate.toTimeString().slice(0, 5),
+        endDate: endDate.toISOString().split("T")[0],
+        endTime: endDate.toTimeString().slice(0, 5),
+        locationDetail: editEvent.locationDetail || "",
+        cityId: "",
+        eventCategoryId: "",
+        eventTypeId: "",
+        maxCapacity: editEvent.maxCapacity.toString(),
+        isPrivate: editEvent.isPrivate,
+      });
+      
+      setImagePreview(editEvent.imageUrl || null);
+      setInitialCityId("");
+    }
+  }, [editEvent]);
 
   const loadCatalogs = async () => {
     try {
@@ -152,6 +180,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
         : new Date(form.endDate).toISOString();
 
       const payload = {
+        id: editEvent?.id,
         title: form.title,
         description: form.description || null,
         startDate: startDateTime,
@@ -165,8 +194,12 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
         imageUrl: imagePreview,
       };
 
-      const res = await fetch("/api/events", {
-        method: "POST",
+      const isEditing = !!editEvent;
+      const url = isEditing ? `/api/events/${editEvent!.id}` : "/api/events";
+      const method = isEditing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
@@ -177,17 +210,23 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
       const data = await res.json();
       
       if (res.ok && data.success) {
-        setCreatedEvent({
-          slug: data.data.slug,
-          accessCode: data.data.accessCode,
-          isPrivate: data.data.isPrivate
-        });
-        toast.success(data.message || "Evento creado correctamente");
+        if (isEditing) {
+          toast.success(data.message || "Evento actualizado correctamente");
+          onSuccess();
+          handleClose();
+        } else {
+          setCreatedEvent({
+            slug: data.data.slug,
+            accessCode: data.data.accessCode,
+            isPrivate: data.data.isPrivate
+          });
+          toast.success(data.message || "Evento creado correctamente");
+        }
       } else {
-        toast.error(data.message || "Error al crear evento");
+        toast.error(data.message || `Error al ${isEditing ? "actualizar" : "crear"} evento`);
       }
     } catch (err: any) {
-      toast.error(err.message || "Error al crear evento");
+      toast.error(err.message || `Error al ${editEvent ? "actualizar" : "crear"} evento`);
     } finally {
       setLoading(false);
     }
@@ -275,7 +314,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900">Crear nuevo evento</h2>
+          <h2 className="text-xl font-bold text-slate-900">{editEvent ? "Editar evento" : "Crear nuevo evento"}</h2>
           <button
             onClick={handleClose}
             disabled={loading}
@@ -578,10 +617,10 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Creando...
+                  {editEvent ? "Guardando..." : "Creando..."}
                 </>
               ) : (
-                "Crear evento"
+                editEvent ? "Guardar cambios" : "Crear evento"
               )}
             </button>
           </div>

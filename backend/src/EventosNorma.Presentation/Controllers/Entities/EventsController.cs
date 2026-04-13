@@ -112,6 +112,14 @@ public class EventsController : ControllerBase
     }
 
     [Authorize]
+    [HttpPost("{id}/leave")]
+    public async Task<IActionResult> Leave(int id)
+    {
+        var success = await _bus.InvokeAsync<bool>(new LeaveEventCommand(id));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Has abandonado el evento correctamente")) : BadRequest();
+    }
+
+    [Authorize]
     [HttpPost("{id}/comments")]
     public async Task<IActionResult> AddComment(int id, [FromBody] AddCommentCommand command)
     {
@@ -148,6 +156,38 @@ public class EventsController : ControllerBase
     {
         var success = await _bus.InvokeAsync<bool>(new CancelEventCommand(id));
         return success ? Ok(ApiResponse<object>.Ok(null, "Evento cancelado correctamente")) : BadRequest();
+    }
+
+    [Authorize]
+    [HttpPost("{id}/reopen")]
+    public async Task<IActionResult> Reopen(int id)
+    {
+        var success = await _bus.InvokeAsync<bool>(new ReopenEventCommand(id));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Evento reopen correctamente")) : BadRequest();
+    }
+
+    [Authorize]
+    [HttpGet("{id}/members")]
+    public async Task<IActionResult> GetMembers(int id)
+    {
+        var response = await _bus.InvokeAsync<IEnumerable<EventMemberViewModel>>(new GetEventMembersQuery(id));
+        return Ok(ApiResponse<IEnumerable<EventMemberViewModel>>.Ok(response));
+    }
+
+    [Authorize]
+    [HttpPost("{id}/members/{userId}/ban")]
+    public async Task<IActionResult> BanMember(int id, int userId)
+    {
+        var success = await _bus.InvokeAsync<bool>(new BanMemberCommand(id, userId));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Miembro baneado correctamente")) : BadRequest();
+    }
+
+    [Authorize]
+    [HttpPost("{id}/members/{userId}/unban")]
+    public async Task<IActionResult> UnbanMember(int id, int userId)
+    {
+        var success = await _bus.InvokeAsync<bool>(new UnbanMemberCommand(id, userId));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Miembro desbaneado correctamente")) : BadRequest();
     }
 
     [Authorize]

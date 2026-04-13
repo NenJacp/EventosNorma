@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast";
-import { Calendar, MapPin, Users, Lock, ArrowLeft, Tag } from "lucide-react";
+import { Calendar, MapPin, Users, Lock, ArrowLeft, Tag, Pencil, Trash2, LogOut, XCircle, RotateCcw, UserCheck } from "lucide-react";
 import JoinByCodeModal from "@/components/JoinByCodeModal";
+import CreateEventModal from "@/components/CreateEventModal";
+import EventMembersModal from "@/components/EventMembersModal";
+import CommentsSection from "@/components/CommentsSection";
 import type { EventViewModel } from "@/types/events";
 
 const categoryBg: Record<string, string> = {
@@ -17,6 +20,13 @@ const categoryBg: Record<string, string> = {
   default: "bg-slate-100 text-slate-700",
 };
 
+const statusBg: Record<string, { bg: string; text: string }> = {
+  Open: { bg: "bg-green-100", text: "text-green-700" },
+  Cancelled: { bg: "bg-red-100", text: "text-red-700" },
+  Closed: { bg: "bg-slate-100", text: "text-slate-700" },
+  Draft: { bg: "bg-amber-100", text: "text-amber-700" },
+};
+
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -26,8 +36,14 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<EventViewModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [reopening, setReopening] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [pendingSlug, setPendingSlug] = useState("");
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
 
   const fetchEvent = async (code?: string) => {
     try {
@@ -82,6 +98,90 @@ export default function EventDetailPage() {
     setShowCodeModal(false);
   };
 
+  const handleLeave = async () => {
+    if (!event) return;
+    if (!confirm("¿Estás seguro de que quieres abandonar este evento?")) return;
+    
+    setLeaving(true);
+    try {
+      await apiFetch(`/api/events/${event.id}/leave`, { method: "POST" });
+      toast.success("Has abandonado el evento correctamente");
+      router.push("/subscriptions");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("No se pudo abandonar el evento");
+      }
+    } finally {
+      setLeaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!event) return;
+    if (!confirm("¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.")) return;
+    
+    setDeleting(true);
+    try {
+      await apiFetch(`/api/events/${event.id}`, { method: "DELETE" });
+      toast.success("Evento eliminado correctamente");
+      router.push("/my-events");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("No se pudo eliminar el evento");
+      }
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!event) return;
+    if (!confirm("¿Estás seguro de que quieres cancelar este evento?")) return;
+    
+    setCancelling(true);
+    try {
+      await apiFetch(`/api/events/${event.id}/cancel`, { method: "POST" });
+      toast.success("Evento cancelado correctamente");
+      fetchEvent();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("No se pudo cancelar el evento");
+      }
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const handleReopen = async () => {
+    if (!event) return;
+    
+    setReopening(true);
+    try {
+      await apiFetch(`/api/events/${event.id}/reopen`, { method: "POST" });
+      toast.success("Evento reopen correctamente");
+      fetchEvent();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("No se pudo reopen el evento");
+      }
+    } finally {
+      setReopening(false);
+    }
+  };
+
+  const handleEditSuccess = () => {
+    fetchEvent();
+    setShowEditModal(false);
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("es-MX", {
@@ -92,6 +192,10 @@ export default function EventDetailPage() {
       minute: "2-digit",
     });
   };
+
+  const isCancelled = event?.status === "Cancelled";
+  const canReopen = isCancelled && event && new Date(event.startDate) > new Date();
+  const canComment = Boolean(event && (event.isCreator || event.isMember) && !isCancelled);
 
   if (loading) {
     return (
@@ -106,6 +210,7 @@ export default function EventDetailPage() {
   }
 
   const bgClass = categoryBg[event.eventCategoryName] || categoryBg.default;
+  const statusStyle = statusBg[event.status] || statusBg.Open;
   const imageToShow = event.displayImageUrl || event.imageUrl || "/uploads/events/defaultprofile.png";
 
   return (
@@ -120,18 +225,25 @@ export default function EventDetailPage() {
         </button>
 
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          {isCancelled && (
+            <div className="bg-red-50 border-b border-red-200 px-6 py-3 flex items-center gap-2">
+              <XCircle size={20} className="text-red-500" />
+              <span className="text-sm font-medium text-red-700">Este evento ha sido cancelado</span>
+            </div>
+          )}
+          
           <div className="w-full h-56 md:h-72 overflow-hidden bg-slate-100">
             <img
               src={imageToShow}
               alt={event.title}
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover ${isCancelled ? "opacity-50 grayscale" : ""}`}
             />
           </div>
 
           <div className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${bgClass}`}>
                     {event.eventCategoryName}
                   </span>
@@ -144,9 +256,56 @@ export default function EventDetailPage() {
                       Privado
                     </span>
                   )}
+                  <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${statusStyle.bg} ${statusStyle.text}`}>
+                    {event.status === "Cancelled" ? "Cancelado" : event.status === "Open" ? "Activo" : event.status}
+                  </span>
                 </div>
                 <h1 className="text-2xl font-bold text-slate-900">{event.title}</h1>
               </div>
+              {event.isCreator && !isCancelled && (
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setShowMembersModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                  >
+                    <UserCheck size={14} />
+                    Miembros
+                  </button>
+                  <button
+                    onClick={() => setShowEditModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                  >
+                    <Pencil size={14} />
+                    Editar
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={cancelling}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <XCircle size={14} />
+                    {cancelling ? "Cancelando..." : "Cancelar"}
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <Trash2 size={14} />
+                    {deleting ? "Eliminando..." : "Eliminar"}
+                  </button>
+                </div>
+              )}
+              {event.isCreator && isCancelled && canReopen && (
+                <button
+                  onClick={handleReopen}
+                  disabled={reopening}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <RotateCcw size={14} />
+                  {reopening ? "Reabriendo..." : "Reabrir evento"}
+                </button>
+              )}
             </div>
 
             <p className="text-slate-600 mb-6 leading-relaxed">{event.description}</p>
@@ -182,8 +341,10 @@ export default function EventDetailPage() {
                   <p className="text-sm font-medium text-slate-900">
                     {event.currentCapacity} / {event.maxCapacity} personas
                   </p>
-                  {event.availableSlots > 0 && (
+                  {event.availableSlots > 0 ? (
                     <p className="text-xs text-green-600">{event.availableSlots} lugares disponibles</p>
+                  ) : (
+                    <p className="text-xs text-red-500">Evento lleno</p>
                   )}
                 </div>
               </div>
@@ -209,7 +370,7 @@ export default function EventDetailPage() {
               </div>
             )}
 
-            {!event.isCreator && !event.isMember && !event.isFull && (
+            {!isCancelled && !event.isCreator && !event.isMember && !event.isFull && (
               <button
                 onClick={handleJoin}
                 disabled={joining}
@@ -219,18 +380,30 @@ export default function EventDetailPage() {
               </button>
             )}
 
-            {!event.isCreator && !event.isMember && event.isFull && (
+            {!isCancelled && !event.isCreator && !event.isMember && event.isFull && (
               <div className="w-full bg-slate-200 text-slate-500 py-4 rounded-xl font-semibold text-center">
                 Evento lleno
               </div>
             )}
 
-            {!event.isCreator && event.isMember && (
-              <div className="w-full bg-green-100 text-green-700 py-4 rounded-xl font-semibold text-center">
-                Ya estás inscrito en este evento
+            {!isCancelled && !event.isCreator && event.isMember && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 bg-green-100 text-green-700 py-4 rounded-xl font-semibold text-center">
+                  Ya estás inscrito en este evento
+                </div>
+                <button
+                  onClick={handleLeave}
+                  disabled={leaving}
+                  className="flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  <LogOut size={16} />
+                  {leaving ? "Abandonando..." : "Abandonar evento"}
+                </button>
               </div>
             )}
           </div>
+
+          <CommentsSection eventId={event.id} canComment={canComment} />
         </div>
       </div>
 
@@ -242,6 +415,20 @@ export default function EventDetailPage() {
         }}
         slug={pendingSlug}
         onSuccess={handleCodeModalSuccess}
+      />
+
+      <CreateEventModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={handleEditSuccess}
+        editEvent={event}
+      />
+
+      <EventMembersModal
+        isOpen={showMembersModal}
+        onClose={() => setShowMembersModal(false)}
+        eventId={event.id}
+        eventTitle={event.title}
       />
     </>
   );
