@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, MapPin, Users, Lock, Music, Laptop, Palette, Trophy, Heart } from "lucide-react";
+import { Calendar, MapPin, Users, Lock } from "lucide-react";
 import Link from "next/link";
 
 export interface EventCardProps {
@@ -30,33 +30,6 @@ const categoryColors: Record<string, string> = {
   default: "tag--blue",
 };
 
-const categoryBgColors: Record<string, string> = {
-  Música: "bg-blue-100",
-  Tecnología: "bg-purple-100",
-  Cultura: "bg-green-100",
-  Deportivo: "bg-amber-100",
-  Social: "bg-pink-100",
-  default: "bg-slate-100",
-};
-
-const categoryIconColors: Record<string, string> = {
-  Música: "text-blue-500",
-  Tecnología: "text-purple-500",
-  Cultura: "text-green-500",
-  Deportivo: "text-amber-500",
-  Social: "text-pink-500",
-  default: "text-slate-500",
-};
-
-const categoryIcons: Record<string, typeof Music> = {
-  Música: Music,
-  Tecnología: Laptop,
-  Cultura: Palette,
-  Deportivo: Trophy,
-  Social: Heart,
-  default: Calendar,
-};
-
 export default function EventCard({
   id,
   slug,
@@ -76,6 +49,7 @@ export default function EventCard({
   const tagClass = categoryColors[categoryName] || categoryColors.default;
   const availableSlots = maxCapacity - currentCapacity;
   const isFull = availableSlots <= 0 && maxCapacity > 0;
+  const imageToShow = displayImageUrl || imageUrl;
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -87,30 +61,17 @@ export default function EventCard({
     return date.toLocaleDateString("es-MX", options);
   };
 
-  const imageToShow = displayImageUrl || imageUrl;
-  const bgClass = categoryBgColors[categoryName] || categoryBgColors.default;
-  const iconColor = categoryIconColors[categoryName] || categoryIconColors.default;
-  const IconComponent = categoryIcons[categoryName] || categoryIcons.default;
-
   return (
     <Link href={`/events/${slug}`} className="group block">
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-        {/* Imagen o placeholder */}
-        {imageToShow ? (
-          <div className="w-full h-32 overflow-hidden">
-            <img 
-              src={imageToShow} 
-              alt={title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className={`w-full h-32 flex items-center justify-center ${bgClass}`}>
-            <IconComponent size={40} className={iconColor} />
-          </div>
-        )}
+        <div className="w-full h-32 overflow-hidden bg-slate-100">
+          <img 
+            src={imageToShow || "/uploads/events/defaultprofile.png"} 
+            alt={title}
+            className="w-full h-full object-cover"
+          />
+        </div>
 
-        {/* Cuerpo */}
         <div className="p-3.5">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`event-card__tag tag inline-block text-[10px] font-medium px-2 py-1 rounded-full ${tagClass}`}>
