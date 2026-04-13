@@ -19,6 +19,9 @@ export interface EventViewModel {
   accessCode?: string;
   isActive: boolean;
   imageUrl?: string;
+  isCreator: boolean;
+  isMember: boolean;
+  showJoinButton?: boolean;
 }
 
 export type EventStatus = "Draft" | "Published" | "Cancelled" | "Closed";

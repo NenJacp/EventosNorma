@@ -20,8 +20,11 @@ public record EventViewModel(
     bool IsPrivate,
     string? AccessCode,
     bool IsActive,
-    string? ImageUrl)
+    string? ImageUrl,
+    bool IsCreator,
+    bool IsMember,
+    bool ShowJoinButton = false)
 {
-    public bool IsFull => CurrentCapacity >= MaxCapacity && MaxCapacity > 0;
+    public bool IsFull => MaxCapacity > 0 && CurrentCapacity >= MaxCapacity;
     public int AvailableSlots => MaxCapacity - CurrentCapacity;
 }

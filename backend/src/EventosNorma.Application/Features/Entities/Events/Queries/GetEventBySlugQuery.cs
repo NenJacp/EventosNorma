@@ -3,7 +3,7 @@ using EventosNorma.Domain.Interfaces;
 
 namespace EventosNorma.Application.Features.Entities.Events.Queries;
 
-public record GetEventBySlugQuery(string Slug);
+public record GetEventBySlugQuery(string Slug, string? AccessCode = null);
 
 public class GetEventBySlugHandler
 {
@@ -19,9 +19,22 @@ public class GetEventBySlugHandler
         if (!e.IsActive && !currentUserService.IsAdmin)
             throw new UnauthorizedAccessException("El evento no está disponible.");
 
-        // Si es privado y NO es admin, NO es el creador, y NO es miembro: ocultar.
-        if (e.IsPrivate && !currentUserService.IsAdmin && e.CreatedById != currentUserService.UserId && !e.Members.Any(m => m.UserId == currentUserService.UserId && m.ExitedAt == null))
-            throw new UnauthorizedAccessException("Este evento es privado. Debes unirte mediante código de acceso para verlo.");
+        var userId = currentUserService.UserId ?? 0;
+        var isMember = e.Members.Any(m => m.UserId == userId && m.ExitedAt == null);
+        var isCreator = e.CreatedById == userId;
+
+        // Si es privado y NO es admin, NO es el creador, y NO es miembro
+        if (e.IsPrivate && !currentUserService.IsAdmin && !isCreator && !isMember)
+        {
+            // Verificar si el código de acceso es correcto
+            if (string.IsNullOrWhiteSpace(query.AccessCode) || query.AccessCode.ToUpper() != e.AccessCode?.ToUpper())
+            {
+                throw new UnauthorizedAccessException("Este evento es privado. Solicita el código de acceso al creador del evento.");
+            }
+        }
+
+        var showAccessCode = currentUserService.IsAdmin || isCreator || isMember;
+        var showJoinButton = e.IsPrivate && !isCreator && !isMember;
 
         return new EventViewModel(
             e.Id,
@@ -39,9 +52,11 @@ public class GetEventBySlugHandler
             e.MaxCapacity,
             e.Members.Count(m => m.JoinedAt != null && m.ExitedAt == null),
             e.IsPrivate,
-            // Solo admin, creador o miembro ven el AccessCode
-            (currentUserService.IsAdmin || e.CreatedById == currentUserService.UserId || e.Members.Any(m => m.UserId == currentUserService.UserId && m.ExitedAt == null)) ? e.AccessCode : null,
+            showAccessCode ? e.AccessCode : null,
             e.IsActive,
-            e.ImageUrl);
+            e.ImageUrl,
+            isCreator,
+            isMember,
+            showJoinButton);
     }
 }

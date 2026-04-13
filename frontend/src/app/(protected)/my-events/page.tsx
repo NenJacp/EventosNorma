@@ -106,15 +106,18 @@ export default function MyEventsPage() {
                 currentCapacity={event.currentCapacity}
                 showCapacity={true}
                 imageUrl={event.imageUrl}
+                isPrivate={event.isPrivate}
               />
             ))}
           </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </>
       )}
 

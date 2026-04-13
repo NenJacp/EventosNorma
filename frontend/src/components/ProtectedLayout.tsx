@@ -5,9 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Calendar,
-  Users,
-  Tags,
-  Settings,
   LogOut,
   Menu,
   X,
@@ -30,17 +27,6 @@ const menuSections = [
       { href: "/my-events", label: "Mis Eventos", icon: Calendar },
       { href: "/subscriptions", label: "Subscripciones", icon: Heart },
     ],
-  },
-  {
-    title: "GESTIÓN",
-    items: [
-      { href: "/events", label: "Explorar", icon: Calendar },
-      { href: "/categories", label: "Categorías", icon: Tags },
-    ],
-  },
-  {
-    title: "SISTEMA",
-    items: [{ href: "/admin", label: "Administración", icon: Settings }],
   },
 ];
 

@@ -20,10 +20,20 @@ public class GetEventsPagedHandler
             excludeCreatedById = currentUserService.UserId;
         }
 
+        // includePrivate: 
+        // - true si es admin
+        // - true si está buscando por CreatedById (mis eventos creados)
+        // - true si está buscando por JoinedByUserId (eventos donde está inscrito)
+        // - false si busca por AccessCode (ya maneja su propia lógica en el repo)
+        // - false en caso contrario (home)
+        bool includePrivate = currentUserService.IsAdmin 
+            || query.CreatedById.HasValue 
+            || query.JoinedByUserId.HasValue;
+
         var (items, totalCount) = await eventRepository.GetPagedAsync(
             query.PageNumber,
             query.PageSize,
-            currentUserService.IsAdmin,
+            includePrivate,
             query.Title,
             query.CityId,
             query.StateId,
@@ -42,26 +52,33 @@ public class GetEventsPagedHandler
             query.SortBy,
             query.IsAscending);
 
-        var viewModels = items.Select(e => new EventViewModel(
-            e.Id,
-            e.Title,
-            e.Slug,
-            e.Description,
-            e.StartDate,
-            e.EndDate,
-            e.LocationDetail,
-            e.City.Name,
-            e.EventCategory.Name,
-            e.EventType.Name,
-            $"{e.Creator.FirstName} {e.Creator.LastName}",
-            e.Status,
-            e.MaxCapacity,
-            e.Members.Count(m => m.JoinedAt != null && m.ExitedAt == null),
-            e.IsPrivate,
-            // Regla: Solo el creador, un miembro, o el admin pueden ver el AccessCode. O si lo buscaron específicamente por ese código.
-            (currentUserService.IsAdmin || e.CreatedById == currentUserService.UserId || e.Members.Any(m => m.UserId == currentUserService.UserId && m.ExitedAt == null) || query.AccessCode == e.AccessCode) ? e.AccessCode : null,
-            e.IsActive,
-            e.ImageUrl));
+        var userId = currentUserService.UserId ?? 0;
+        var viewModels = items.Select(e => {
+            var isMember = e.Members.Any(m => m.UserId == userId && m.ExitedAt == null);
+            var isCreator = e.CreatedById == userId;
+            var showAccessCode = currentUserService.IsAdmin || isCreator || isMember || query.AccessCode == e.AccessCode;
+            return new EventViewModel(
+                e.Id,
+                e.Title,
+                e.Slug,
+                e.Description,
+                e.StartDate,
+                e.EndDate,
+                e.LocationDetail,
+                e.City.Name,
+                e.EventCategory.Name,
+                e.EventType.Name,
+                $"{e.Creator.FirstName} {e.Creator.LastName}",
+                e.Status,
+                e.MaxCapacity,
+                e.Members.Count(m => m.JoinedAt != null && m.ExitedAt == null),
+                e.IsPrivate,
+                showAccessCode ? e.AccessCode : null,
+                e.IsActive,
+                e.ImageUrl,
+                isCreator,
+                isMember);
+        });
 
         return new PagedList<EventViewModel>(
             viewModels,

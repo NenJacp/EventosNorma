@@ -1,18 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import EventCard from "@/components/EventCard";
 import Pagination from "@/components/Pagination";
+import JoinByCodeModal from "@/components/JoinByCodeModal";
 import { toast } from "@/lib/toast";
+import { Lock } from "lucide-react";
 import type { EventViewModel, EventsResponse } from "@/types/events";
 
 export default function HomePage() {
+  const router = useRouter();
   const [events, setEvents] = useState<EventViewModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [showCodeModal, setShowCodeModal] = useState(false);
 
   const fetchEvents = async (page: number) => {
     setLoading(true);
@@ -43,18 +48,41 @@ export default function HomePage() {
     fetchEvents(page);
   };
 
+  const handleCodeModalSuccess = (eventData: EventViewModel) => {
+    setShowCodeModal(false);
+    router.push(`/events/${eventData.slug}?code=${eventData.accessCode || ""}`);
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Inicio</h1>
           <p className="text-sm text-slate-500">
             Explora los próximos eventos
           </p>
         </div>
-        <span className="text-sm text-slate-500">
-          {totalCount} evento{totalCount !== 1 ? "s" : ""} encontrado{totalCount !== 1 ? "s" : ""}
-        </span>
+        
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            onClick={() => setShowCodeModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-200 transition-colors shadow-sm"
+          >
+            <Lock size={18} />
+            <span className="text-sm font-medium">Código privado</span>
+          </button>
+          
+          <div className="flex items-center gap-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+            <span className="text-sm text-slate-500 whitespace-nowrap bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+              {totalCount} evento{totalCount !== 1 ? "s" : ""} encontrado{totalCount !== 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
       </div>
 
       {loading ? (
@@ -83,17 +111,27 @@ export default function HomePage() {
                 currentCapacity={event.currentCapacity}
                 showCapacity={false}
                 imageUrl={event.imageUrl}
+                isPrivate={event.isPrivate}
               />
             ))}
           </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+          <div className="mt-8 flex justify-end">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </>
       )}
+
+      <JoinByCodeModal
+        isOpen={showCodeModal}
+        onClose={() => setShowCodeModal(false)}
+        slug=""
+        onSuccess={handleCodeModalSuccess}
+      />
     </div>
   );
 }

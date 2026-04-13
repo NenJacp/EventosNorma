@@ -68,8 +68,8 @@ public class EventsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateEventCommand command)
     {
-        var eventId = await _bus.InvokeAsync<int>(command);
-        return CreatedAtAction(nameof(GetPaged), new { id = eventId }, ApiResponse<object>.Ok(new { id = eventId }, "Evento creado correctamente"));
+        var result = await _bus.InvokeAsync<CreateEventResponse>(command);
+        return CreatedAtAction(nameof(GetPaged), new { id = result.Id }, ApiResponse<CreateEventResponse>.Ok(result, "Evento creado correctamente"));
     }
 
     [Authorize]
@@ -128,9 +128,9 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("slug/{slug}")]
-    public async Task<IActionResult> GetBySlug(string slug)
+    public async Task<IActionResult> GetBySlug(string slug, [FromQuery] string? code)
     {
-        var response = await _bus.InvokeAsync<EventViewModel>(new GetEventBySlugQuery(slug));
+        var response = await _bus.InvokeAsync<EventViewModel>(new GetEventBySlugQuery(slug, code));
         return Ok(ApiResponse<EventViewModel>.Ok(response));
     }
 

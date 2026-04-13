@@ -44,6 +44,8 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
     isPrivate: false,
   });
 
+  const [createdEvent, setCreatedEvent] = useState<{ slug: string; accessCode?: string; isPrivate: boolean } | null>(null);
+
   useEffect(() => {
     if (isOpen) {
       modalRef.current?.showModal();
@@ -175,9 +177,12 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
       const data = await res.json();
       
       if (res.ok && data.success) {
+        setCreatedEvent({
+          slug: data.data.slug,
+          accessCode: data.data.accessCode,
+          isPrivate: data.data.isPrivate
+        });
         toast.success(data.message || "Evento creado correctamente");
-        onSuccess();
-        handleClose();
       } else {
         toast.error(data.message || "Error al crear evento");
       }
@@ -189,6 +194,9 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
   };
 
   const handleClose = () => {
+    if (createdEvent) {
+      onSuccess();
+    }
     setForm({
       title: "",
       description: "",
@@ -209,6 +217,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
     setStates([]);
     setImagePreview(null);
     setSelectedFile(null);
+    setCreatedEvent(null);
     onClose();
   };
 
@@ -219,6 +228,42 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
   };
 
   if (!isOpen) return null;
+
+  if (createdEvent) {
+    return (
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        onClick={handleClose}
+      >
+        <div 
+          className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Evento creado exitosamente</h3>
+            {createdEvent.isPrivate && createdEvent.accessCode && (
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-700 mb-2">Código de acceso para tu evento privado:</p>
+                <p className="text-2xl font-mono font-bold text-amber-900 tracking-widest">{createdEvent.accessCode}</p>
+                <p className="text-xs text-amber-600 mt-2">Comparte este código con las personas que quieras invitar</p>
+              </div>
+            )}
+            <button
+              onClick={handleClose}
+              className="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Ir al evento
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 

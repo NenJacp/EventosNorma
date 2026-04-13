@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Users, Lock } from "lucide-react";
 import Link from "next/link";
 
 export interface EventCardProps {
@@ -17,6 +17,7 @@ export interface EventCardProps {
   isFull?: boolean;
   showCapacity?: boolean;
   imageUrl?: string;
+  isPrivate?: boolean;
 }
 
 const categoryColors: Record<string, string> = {
@@ -41,6 +42,7 @@ export default function EventCard({
   currentCapacity,
   showCapacity = false,
   imageUrl,
+  isPrivate = false,
 }: EventCardProps) {
   const tagClass = categoryColors[categoryName] || categoryColors.default;
   const availableSlots = maxCapacity - currentCapacity;
@@ -101,13 +103,19 @@ export default function EventCard({
 
         {/* Cuerpo */}
         <div className="p-3.5">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`event-card__tag tag inline-block text-[10px] font-medium px-2 py-1 rounded-full ${tagClass}`}>
               {categoryName}
             </span>
             <span className="inline-block text-[10px] font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
               {eventTypeName}
             </span>
+            {isPrivate && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                <Lock size={10} />
+                Privado
+              </span>
+            )}
           </div>
 
           <h3 className="text-sm font-semibold text-slate-900 mb-3 line-clamp-2">
