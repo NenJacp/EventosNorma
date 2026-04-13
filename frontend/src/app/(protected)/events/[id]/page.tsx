@@ -4,9 +4,36 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast";
-import { Calendar, MapPin, Users, Lock, ArrowLeft } from "lucide-react";
+import { Calendar, MapPin, Users, Lock, ArrowLeft, Tag } from "lucide-react";
 import JoinByCodeModal from "@/components/JoinByCodeModal";
 import type { EventViewModel } from "@/types/events";
+
+const categoryColors: Record<string, string> = {
+  Música: "from-blue-500 to-blue-600",
+  Tecnología: "from-purple-500 to-purple-600",
+  Cultura: "from-green-500 to-green-600",
+  Deportivo: "from-amber-500 to-amber-600",
+  Social: "from-pink-500 to-pink-600",
+  default: "from-slate-500 to-slate-600",
+};
+
+const categoryBg: Record<string, string> = {
+  Música: "bg-blue-100 text-blue-700",
+  Tecnología: "bg-purple-100 text-purple-700",
+  Cultura: "bg-green-100 text-green-700",
+  Deportivo: "bg-amber-100 text-amber-700",
+  Social: "bg-pink-100 text-pink-700",
+  default: "bg-slate-100 text-slate-700",
+};
+
+const categoryEmoji: Record<string, string> = {
+  Música: "🎵",
+  Tecnología: "💻",
+  Cultura: "🌿",
+  Deportivo: "⚽",
+  Social: "🎉",
+  default: "📅",
+};
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -96,6 +123,10 @@ export default function EventDetailPage() {
     return null;
   }
 
+  const colorClass = categoryColors[event.eventCategoryName] || categoryColors.default;
+  const bgClass = categoryBg[event.eventCategoryName] || categoryBg.default;
+  const emoji = categoryEmoji[event.eventCategoryName] || categoryEmoji.default;
+
   return (
     <>
       <div>
@@ -107,102 +138,124 @@ export default function EventDetailPage() {
           Volver
         </button>
 
-        {event.imageUrl && (
-          <div className="w-full h-64 mb-6 rounded-xl overflow-hidden">
-            <img
-              src={event.imageUrl}
-              alt={event.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
-
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <span className="inline-block text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-700 mb-2">
-                {event.eventCategoryName}
-              </span>
-              <h1 className="text-2xl font-bold text-slate-900">{event.title}</h1>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          {event.imageUrl ? (
+            <div className="w-full h-56 md:h-72 overflow-hidden">
+              <img
+                src={event.imageUrl}
+                alt={event.title}
+                className="w-full h-full object-cover"
+              />
             </div>
-            {event.isPrivate && (
-              <span className="flex items-center gap-1 text-sm text-slate-500">
-                <Lock size={14} />
-                Privado
-              </span>
-            )}
-          </div>
-
-          <p className="text-slate-600 mb-6">{event.description}</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2 text-slate-600">
-              <Calendar size={18} className="text-slate-400" />
-              <div>
-                <p className="text-xs text-slate-400">Fecha inicio</p>
-                <p>{formatDate(event.startDate)}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-slate-600">
-              <Calendar size={18} className="text-slate-400" />
-              <div>
-                <p className="text-xs text-slate-400">Fecha fin</p>
-                <p>{formatDate(event.endDate)}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-slate-600">
-              <MapPin size={18} className="text-slate-400" />
-              <div>
-                <p className="text-xs text-slate-400">Ubicación</p>
-                <p>{event.cityName}{event.locationDetail && ` - ${event.locationDetail}`}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-slate-600">
-              <Users size={18} className="text-slate-400" />
-              <div>
-                <p className="text-xs text-slate-400">Capacidad</p>
-                <p>{event.currentCapacity} / {event.maxCapacity} ({event.availableSlots} disponibles)</p>
-              </div>
-            </div>
-          </div>
-
-          {event.accessCode && (
-            <div className="mt-4 p-3 bg-slate-100 rounded-lg">
-              <p className="text-xs text-slate-500">Código de acceso</p>
-              <p className="font-mono font-bold text-lg">{event.accessCode}</p>
+          ) : (
+            <div className={`w-full h-40 bg-gradient-to-br ${colorClass} flex items-center justify-center`}>
+              <span className="text-6xl">{emoji}</span>
             </div>
           )}
 
-          {!event.isCreator && !event.isMember && !event.isFull && (
-            <div className="mt-4">
+          <div className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${bgClass}`}>
+                    {event.eventCategoryName}
+                  </span>
+                  <span className="inline-block text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                    {event.eventTypeName}
+                  </span>
+                  {event.isPrivate && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+                      <Lock size={12} />
+                      Privado
+                    </span>
+                  )}
+                </div>
+                <h1 className="text-2xl font-bold text-slate-900">{event.title}</h1>
+              </div>
+            </div>
+
+            <p className="text-slate-600 mb-6 leading-relaxed">{event.description}</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                  <Calendar size={20} className="text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Fecha y hora</p>
+                  <p className="text-sm font-medium text-slate-900">{formatDate(event.startDate)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                  <MapPin size={20} className="text-red-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Ubicación</p>
+                  <p className="text-sm font-medium text-slate-900">
+                    {event.cityName}
+                    {event.locationDetail && ` - ${event.locationDetail}`}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                  <Users size={20} className="text-green-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Capacidad</p>
+                  <p className="text-sm font-medium text-slate-900">
+                    {event.currentCapacity} / {event.maxCapacity} personas
+                  </p>
+                  {event.availableSlots > 0 && (
+                    <p className="text-xs text-green-600">{event.availableSlots} lugares disponibles</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                  <Tag size={20} className="text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400">Tipo de evento</p>
+                  <p className="text-sm font-medium text-slate-900">{event.eventTypeName}</p>
+                </div>
+              </div>
+            </div>
+
+            {event.accessCode && (
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <Lock size={16} className="text-amber-600" />
+                  <p className="text-sm font-medium text-amber-800">Código de acceso</p>
+                </div>
+                <p className="font-mono font-bold text-2xl text-amber-900 tracking-widest">{event.accessCode}</p>
+                <p className="text-xs text-amber-600 mt-1">Compártelo con quienes quieras invitar</p>
+              </div>
+            )}
+
+            {!event.isCreator && !event.isMember && !event.isFull && (
               <button
                 onClick={handleJoin}
                 disabled={joining}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
               >
                 {joining ? "Uniéndose..." : "Unirse al evento"}
               </button>
-            </div>
-          )}
+            )}
 
-          {!event.isCreator && !event.isMember && event.isFull && (
-            <div className="mt-4">
-              <button
-                disabled
-                className="w-full bg-slate-200 text-slate-500 py-3 rounded-lg font-semibold cursor-not-allowed"
-              >
+            {!event.isCreator && !event.isMember && event.isFull && (
+              <div className="w-full bg-slate-200 text-slate-500 py-4 rounded-xl font-semibold text-center">
                 Evento lleno
-              </button>
-            </div>
-          )}
+              </div>
+            )}
 
-          {!event.isCreator && event.isMember && (
-            <div className="mt-4">
-              <div className="w-full bg-green-100 text-green-700 py-3 rounded-lg font-semibold text-center">
+            {!event.isCreator && event.isMember && (
+              <div className="w-full bg-green-100 text-green-700 py-4 rounded-xl font-semibold text-center">
                 Ya estás inscrito en este evento
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
