@@ -30,11 +30,17 @@ namespace EventosNorma.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("BannedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("EventId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("ExitedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsBanned")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
