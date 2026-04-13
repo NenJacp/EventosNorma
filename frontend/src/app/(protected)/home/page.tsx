@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Lock, Sparkles, CalendarDays } from "lucide-react";
+import { Search, Lock, Sparkles, CalendarDays, ChevronRight, ChevronLeft } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import EventCard from "@/components/EventCard";
 import Pagination from "@/components/Pagination";
