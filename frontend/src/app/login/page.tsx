@@ -3,8 +3,8 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import AuthShell from "@/components/AuthShell";
 import PasswordInput from "@/components/PasswordInput";
+import AuthCardLayout from "@/components/AuthCardLayout";
 import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast";
 import type { LoginRequest, LoginResponse } from "@/types/auth";
@@ -83,17 +83,24 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthShell
+    <AuthCardLayout
       title="Iniciar sesión"
-      description="Ingresa tus credenciales para acceder al sistema"
-      sideTitle="Organiza, crea y administra tus eventos en un solo lugar."
-      sideText="Accede a tu cuenta para gestionar asistentes, fechas, detalles y nuevas experiencias."
-      sideFooter="Si tu correo aún no está validado, te enviaremos a la pantalla de verificación."
-      accent="blue"
+      description="Accede a tu panel para gestionar la información de tus eventos."
+      footer={
+        <>
+          ¿No tienes cuenta?{" "}
+          <Link
+            href="/register"
+            className="font-bold text-blue-700 transition hover:underline"
+          >
+            Regístrate aquí
+          </Link>
+        </>
+      }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-semibold text-gray-800">
             Correo electrónico
           </label>
           <input
@@ -102,32 +109,25 @@ export default function LoginPage() {
             value={form.email}
             onChange={handleChange}
             placeholder="ejemplo@correo.com"
-            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            disabled={loading}
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-70"
           />
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-semibold text-gray-800">
             Contraseña
           </label>
           <PasswordInput
             name="password"
             value={form.password}
             onChange={handleChange}
-            placeholder="********"
+            placeholder="Ingresa tu contraseña"
             disabled={loading}
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 font-semibold text-white transition hover:from-blue-500 hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? "Ingresando..." : "Iniciar sesión"}
-        </button>
-
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-end pt-1">
           <Link
             href="/forgot-password"
             className="text-sm font-semibold text-blue-700 transition hover:underline"
@@ -135,17 +135,15 @@ export default function LoginPage() {
             ¿Olvidaste tu contraseña?
           </Link>
         </div>
-      </form>
 
-      <p className="mt-6 text-sm text-gray-600">
-        ¿No tienes cuenta?{" "}
-        <Link
-          href="/register"
-          className="font-semibold text-blue-700 transition hover:underline"
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 px-4 py-3.5 text-sm font-bold text-white shadow-[0_12px_24px_rgba(21,101,255,0.24)] transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Crear cuenta
-        </Link>
-      </p>
-    </AuthShell>
+          {loading ? "Ingresando..." : "Entrar al sistema"}
+        </button>
+      </form>
+    </AuthCardLayout>
   );
 }

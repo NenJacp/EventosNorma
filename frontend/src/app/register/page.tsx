@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
-import AuthShell from "@/components/AuthShell";
+import AuthCardLayout from "@/components/AuthCardLayout";
 import PasswordInput from "@/components/PasswordInput";
 import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast";
@@ -31,7 +31,10 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
-  const [touched, setTouched] = useState({ email: false, password: false });
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
@@ -43,7 +46,9 @@ export default function RegisterPage() {
   useEffect(() => {
     if (touched.email && form.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      setEmailError(emailRegex.test(form.email) ? "" : "Correo electrónico inválido");
+      setEmailError(
+        emailRegex.test(form.email) ? "" : "Correo electrónico inválido"
+      );
     }
   }, [form.email, touched.email]);
 
@@ -65,7 +70,9 @@ export default function RegisterPage() {
       return false;
     }
 
-    const allPassed = passwordRequirements.every((req) => req.test(form.password));
+    const allPassed = passwordRequirements.every((req) =>
+      req.test(form.password)
+    );
     if (!allPassed) {
       toast.error("La contraseña no cumple todos los requisitos.");
       return false;
@@ -107,48 +114,70 @@ export default function RegisterPage() {
     }
   };
 
-  const allRequirementsMet = passwordRequirements.every((req) => req.test(form.password));
+  const allRequirementsMet = passwordRequirements.every((req) =>
+    req.test(form.password)
+  );
 
   return (
-    <AuthShell
+    <AuthCardLayout
+      eyebrow="Registro"
       title="Crear cuenta"
-      description="Completa los siguientes datos para registrarte"
-      sideTitle="Crea tu cuenta y empieza a gestionar eventos fácilmente."
-      sideText="Registra tus datos para comenzar con la configuración de tu app."
-      sideFooter="Después del registro te llevaremos a validar tu correo."
-      accent="blue"
+      description="Completa los siguientes datos para registrarte en la plataforma."
+      sideTitle={
+        <>
+          Crea tu <span className="text-blue-400">cuenta</span> y comienza a
+          gestionar eventos
+        </>
+      }
+      sideDescription="Registra tus datos para comenzar con la configuración de tu sistema. Después del registro, podrás validar tu correo y continuar."
+      statusText="Registro disponible"
+      footer={
+        <>
+          ¿Ya tienes cuenta?{" "}
+          <Link
+            href="/login"
+            className="font-bold text-blue-700 transition hover:underline"
+          >
+            Inicia sesión
+          </Link>
+        </>
+      }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Nombre
-          </label>
-          <input
-            type="text"
-            name="firstName"
-            value={form.firstName}
-            onChange={handleChange}
-            placeholder="Tu nombre"
-            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-          />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-gray-800">
+              Nombre
+            </label>
+            <input
+              type="text"
+              name="firstName"
+              value={form.firstName}
+              onChange={handleChange}
+              placeholder="Tu nombre"
+              disabled={loading}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-70"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-gray-800">
+              Apellido
+            </label>
+            <input
+              type="text"
+              name="lastName"
+              value={form.lastName}
+              onChange={handleChange}
+              placeholder="Tu apellido"
+              disabled={loading}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-70"
+            />
+          </div>
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Apellido
-          </label>
-          <input
-            type="text"
-            name="lastName"
-            value={form.lastName}
-            onChange={handleChange}
-            placeholder="Tu apellido"
-            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-semibold text-gray-800">
             Correo electrónico
           </label>
           <input
@@ -158,17 +187,19 @@ export default function RegisterPage() {
             onChange={handleChange}
             onBlur={() => setTouched((t) => ({ ...t, email: true }))}
             placeholder="ejemplo@correo.com"
-            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            disabled={loading}
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-70"
           />
           {emailError && (
-            <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
-              <X size={14} /> {emailError}
+            <p className="mt-2 flex items-center gap-1 text-xs text-red-500">
+              <X size={14} />
+              {emailError}
             </p>
           )}
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-semibold text-gray-800">
             Contraseña
           </label>
           <PasswordInput
@@ -177,30 +208,32 @@ export default function RegisterPage() {
             onChange={handleChange}
             onBlur={() => setTouched((t) => ({ ...t, password: true }))}
             placeholder="Crea una contraseña segura"
+            disabled={loading}
           />
+
           {touched.password && (
-            <div className="mt-2 space-y-1">
-              {passwordRequirements.map((req, i) => (
-                <p
-                  key={i}
-                  className={`text-xs flex items-center gap-1 ${
-                    req.test(form.password) ? "text-green-600" : "text-red-500"
-                  }`}
-                >
-                  {req.test(form.password) ? (
-                    <Check size={14} />
-                  ) : (
-                    <X size={14} />
-                  )}
-                  {req.label}
-                </p>
-              ))}
+            <div className="mt-3 grid gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              {passwordRequirements.map((req, i) => {
+                const passed = req.test(form.password);
+
+                return (
+                  <p
+                    key={i}
+                    className={`flex items-center gap-2 text-xs ${
+                      passed ? "text-green-600" : "text-red-500"
+                    }`}
+                  >
+                    {passed ? <Check size={14} /> : <X size={14} />}
+                    {req.label}
+                  </p>
+                );
+              })}
             </div>
           )}
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-semibold text-gray-800">
             Confirmar contraseña
           </label>
           <PasswordInput
@@ -208,27 +241,36 @@ export default function RegisterPage() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Repite tu contraseña"
+            disabled={loading}
           />
+          {confirmPassword && (
+            <p
+              className={`mt-2 flex items-center gap-1 text-xs ${
+                form.password === confirmPassword
+                  ? "text-green-600"
+                  : "text-red-500"
+              }`}
+            >
+              {form.password === confirmPassword ? (
+                <Check size={14} />
+              ) : (
+                <X size={14} />
+              )}
+              {form.password === confirmPassword
+                ? "Las contraseñas coinciden"
+                : "Las contraseñas no coinciden"}
+            </p>
+          )}
         </div>
 
         <button
           type="submit"
           disabled={loading || !allRequirementsMet}
-          className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 font-semibold text-white transition hover:from-blue-500 hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 px-4 py-3.5 text-sm font-bold text-white shadow-[0_12px_24px_rgba(21,101,255,0.24)] transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Registrando..." : "Crear cuenta"}
         </button>
       </form>
-
-      <p className="mt-6 text-sm text-gray-600">
-        ¿Ya tienes cuenta?{" "}
-        <Link
-          href="/login"
-          className="font-semibold text-blue-700 transition hover:underline"
-        >
-          Inicia sesión
-        </Link>
-      </p>
-    </AuthShell>
+    </AuthCardLayout>
   );
 }
