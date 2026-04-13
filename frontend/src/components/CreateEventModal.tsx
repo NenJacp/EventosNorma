@@ -24,6 +24,7 @@ interface CreateEventModalProps {
 
 export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent }: CreateEventModalProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
@@ -265,7 +266,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === modalRef.current && !loading) {
+    if (e.target === backdropRef.current && !loading) {
       handleClose();
     }
   };
@@ -275,8 +276,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
   if (createdEvent) {
     return (
       <div
-        ref={modalRef}
-        onClick={handleBackdropClick}
+        onClick={handleClose}
         className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
       >
         <div
@@ -323,7 +323,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
 
   return (
     <div
-      ref={modalRef}
+      ref={backdropRef}
       onClick={handleBackdropClick}
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-3 py-4 backdrop-blur-sm"
     >
