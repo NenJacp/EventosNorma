@@ -19,6 +19,7 @@ export interface EventViewModel {
   accessCode?: string;
   isActive: boolean;
   imageUrl?: string;
+  displayImageUrl: string;
   isCreator: boolean;
   isMember: boolean;
   showJoinButton?: boolean;

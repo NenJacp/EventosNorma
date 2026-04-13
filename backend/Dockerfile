@@ -21,5 +21,5 @@ WORKDIR /app
 COPY --from=build /out .
 RUN mkdir -p wwwroot/uploads/users wwwroot/uploads/events
 COPY wwwroot/uploads/users/defaultprofile.png wwwroot/uploads/users/defaultprofile.png
-COPY wwwroot/uploads/events/defaultplace.png wwwroot/uploads/events/defaultplace.png
+COPY wwwroot/uploads/events/defaultprofile.png wwwroot/uploads/events/defaultprofile.png
 ENTRYPOINT ["dotnet", "EventosNorma.Presentation.dll"]

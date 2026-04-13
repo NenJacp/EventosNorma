@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast";
-import { Calendar, MapPin, Users, Lock, ArrowLeft, Tag } from "lucide-react";
+import { Calendar, MapPin, Users, Lock, ArrowLeft, Tag, Music, Laptop, Palette, Trophy, Heart } from "lucide-react";
 import JoinByCodeModal from "@/components/JoinByCodeModal";
 import type { EventViewModel } from "@/types/events";
 
@@ -26,13 +26,31 @@ const categoryBg: Record<string, string> = {
   default: "bg-slate-100 text-slate-700",
 };
 
-const categoryEmoji: Record<string, string> = {
-  Música: "🎵",
-  Tecnología: "💻",
-  Cultura: "🌿",
-  Deportivo: "⚽",
-  Social: "🎉",
-  default: "📅",
+const categoryBgColors: Record<string, string> = {
+  Música: "bg-blue-100",
+  Tecnología: "bg-purple-100",
+  Cultura: "bg-green-100",
+  Deportivo: "bg-amber-100",
+  Social: "bg-pink-100",
+  default: "bg-slate-100",
+};
+
+const categoryIconColors: Record<string, string> = {
+  Música: "text-blue-500",
+  Tecnología: "text-purple-500",
+  Cultura: "text-green-500",
+  Deportivo: "text-amber-500",
+  Social: "text-pink-500",
+  default: "text-slate-500",
+};
+
+const categoryIcons: Record<string, typeof Music> = {
+  Música: Music,
+  Tecnología: Laptop,
+  Cultura: Palette,
+  Deportivo: Trophy,
+  Social: Heart,
+  default: Calendar,
 };
 
 export default function EventDetailPage() {
@@ -125,7 +143,9 @@ export default function EventDetailPage() {
 
   const colorClass = categoryColors[event.eventCategoryName] || categoryColors.default;
   const bgClass = categoryBg[event.eventCategoryName] || categoryBg.default;
-  const emoji = categoryEmoji[event.eventCategoryName] || categoryEmoji.default;
+  const bgColor = categoryBgColors[event.eventCategoryName] || categoryBgColors.default;
+  const iconColor = categoryIconColors[event.eventCategoryName] || categoryIconColors.default;
+  const IconComponent = categoryIcons[event.eventCategoryName] || categoryIcons.default;
 
   return (
     <>
@@ -139,17 +159,17 @@ export default function EventDetailPage() {
         </button>
 
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-          {event.imageUrl ? (
+          {event.displayImageUrl || event.imageUrl ? (
             <div className="w-full h-56 md:h-72 overflow-hidden">
               <img
-                src={event.imageUrl}
+                src={event.displayImageUrl || event.imageUrl}
                 alt={event.title}
                 className="w-full h-full object-cover"
               />
             </div>
           ) : (
             <div className={`w-full h-40 bg-gradient-to-br ${colorClass} flex items-center justify-center`}>
-              <span className="text-6xl">{emoji}</span>
+              <IconComponent size={64} className="text-white/80" />
             </div>
           )}
 
@@ -213,8 +233,8 @@ export default function EventDetailPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                  <Tag size={20} className="text-purple-500" />
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${bgColor}`}>
+                  <IconComponent size={20} className={iconColor} />
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">Tipo de evento</p>

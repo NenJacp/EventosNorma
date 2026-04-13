@@ -7,6 +7,8 @@ using EventosNorma.Domain.Interfaces;
 
 public class Event : IAuditableEntity
 {
+    public const string DefaultEventImage = "/uploads/events/defaultprofile.png";
+
     // 1. Identidad
     public int Id { get; private set; }
     public string Slug { get; private set; } = string.Empty;

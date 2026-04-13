@@ -1,3 +1,4 @@
+using EventosNorma.Domain.Entities;
 using EventosNorma.Domain.Enums;
 
 namespace EventosNorma.Application.Features.Entities.Events.ViewModels;
@@ -27,4 +28,5 @@ public record EventViewModel(
 {
     public bool IsFull => MaxCapacity > 0 && CurrentCapacity >= MaxCapacity;
     public int AvailableSlots => MaxCapacity - CurrentCapacity;
+    public string DisplayImageUrl => ImageUrl ?? Event.DefaultEventImage;
 }
