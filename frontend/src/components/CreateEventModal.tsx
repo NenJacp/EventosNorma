@@ -649,7 +649,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+              <div className="grid gap-5 md:grid-cols-2">
                 <div>
                   <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
                     <Users size={15} className="text-blue-600" />
@@ -672,25 +672,63 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
                   />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setForm((prev) => ({
-                      ...prev,
-                      isPrivate: !prev.isPrivate,
-                    }))
-                  }
-                  disabled={loading}
-                  className={`flex h-[50px] items-center gap-2 rounded-2xl px-4 text-sm font-semibold transition ${
-                    form.isPrivate
-                      ? "bg-blue-600 text-white"
-                      : "border border-slate-200 bg-slate-50 text-slate-700"
-                  }`}
-                >
-                  <Lock size={15} />
-                  {form.isPrivate ? "Privado" : "Público"}
-                </button>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-800">
+                    Visibilidad
+                  </label>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-1">
+                    <div className="grid grid-cols-2 gap-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            isPrivate: false,
+                          }))
+                        }
+                        disabled={loading}
+                        aria-pressed={!form.isPrivate}
+                        className={`flex h-12 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition ${
+                          !form.isPrivate
+                            ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200"
+                            : "text-slate-600 hover:bg-white/70"
+                        } disabled:opacity-50`}
+                      >
+                        <Users size={15} />
+                        Público
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            isPrivate: true,
+                          }))
+                        }
+                        disabled={loading}
+                        aria-pressed={form.isPrivate}
+                        className={`flex h-12 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition ${
+                          form.isPrivate
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-slate-600 hover:bg-white/70"
+                        } disabled:opacity-50`}
+                      >
+                        <Lock size={15} />
+                        Privado
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="mt-2 min-h-[20px] text-xs text-slate-500">
+                    {form.isPrivate
+                      ? "Solo podrán entrar personas con código de acceso."
+                      : "Cualquier persona podrá ver y acceder al evento."}
+                  </p>
+                </div>
               </div>
+              
             </div>
           </div>
 
