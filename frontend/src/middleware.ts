@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/profile') || 
     pathname.startsWith('/my-events') || 
     pathname.startsWith('/subscriptions') || 
-    pathname.startsWith('/usuarios') || 
+    pathname.startsWith('/users') || 
     pathname.startsWith('/catalog') || 
     pathname.startsWith('/categories');
 

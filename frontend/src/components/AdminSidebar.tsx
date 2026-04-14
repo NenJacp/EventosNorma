@@ -36,24 +36,24 @@ const adminMenuSections = [
   {
     title: "PANEL",
     items: [
-      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/admin/all-events", label: "Eventos", icon: Calendar },
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/all-events", label: "Eventos", icon: Calendar },
     ],
   },
   {
     title: "CATÁLOGOS",
     items: [
-      { href: "/admin/catalog/countries", label: "Países", icon: Globe },
-      { href: "/admin/catalog/states", label: "Estados", icon: MapPin },
-      { href: "/admin/catalog/cities", label: "Ciudades", icon: MapPin },
-      { href: "/admin/catalog/event-types", label: "Tipos de Evento", icon: Tag },
-      { href: "/admin/catalog/event-categories", label: "Categorías", icon: List },
+      { href: "/catalog/countries", label: "Países", icon: Globe },
+      { href: "/catalog/states", label: "Estados", icon: MapPin },
+      { href: "/catalog/cities", label: "Ciudades", icon: MapPin },
+      { href: "/catalog/event-types", label: "Tipos de Evento", icon: Tag },
+      { href: "/catalog/event-categories", label: "Categorías", icon: List },
     ],
   },
   {
     title: "USUARIOS",
     items: [
-      { href: "/admin/users", label: "Usuarios", icon: Users },
+      { href: "/users", label: "Usuarios", icon: Users },
     ],
   },
 ];
