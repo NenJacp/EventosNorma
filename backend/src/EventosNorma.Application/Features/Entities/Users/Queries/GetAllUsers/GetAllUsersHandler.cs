@@ -10,16 +10,15 @@ public class GetAllUsersHandler
     {
         var users = await userRepository.GetAllAsync();
         return users.Select(u => new UserViewModel(
-            u.Id,
-            u.FirstName,
-            u.LastName,
+            u.Id, 
+            u.FirstName, 
+            u.LastName, 
             u.Email,
             u.Role.ToString(),
             u.IsBanned,
             u.BanReason,
             u.BannedAt,
             u.IsActive,
-            u.CreatedAt
-        ));
+            u.CreatedAt));
     }
 }

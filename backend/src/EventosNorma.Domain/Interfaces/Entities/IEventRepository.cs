@@ -1,4 +1,5 @@
 using EventosNorma.Domain.Entities;
+using EventosNorma.Domain.Enums;
 
 namespace EventosNorma.Domain.Interfaces;
 
@@ -25,6 +26,7 @@ public interface IEventRepository
         DateTime? minCreatedAt = null,
         bool? onlyAvailable = null,
         bool? isActive = null,
+        EventStatus? status = null,
         string? accessCode = null,
         string? sortBy = null,
         bool isAscending = true);

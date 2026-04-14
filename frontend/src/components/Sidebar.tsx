@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Calendar, LogOut, Menu, X, LayoutGrid, Heart, User, Shield } from "lucide-react";
+import { Calendar, LogOut, Menu, X, LayoutGrid, Heart, User, Users, Globe, MapPin, Layers, Tag, Database, BarChart3 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 
@@ -20,13 +20,34 @@ interface SidebarProps {
   visible: boolean;
 }
 
-const menuSections = [
+const mainSections = [
   {
     title: "PRINCIPAL",
     items: [
       { href: "/home", label: "Inicio", icon: LayoutGrid },
       { href: "/my-events", label: "Mis Eventos", icon: Calendar },
       { href: "/subscriptions", label: "Subscripciones", icon: Heart },
+    ],
+  },
+];
+
+const adminSections = [
+  {
+    title: "ADMINISTRACIÓN",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
+      { href: "/usuarios", label: "Usuarios", icon: Users },
+      { href: "/all-events", label: "Todos los Eventos", icon: Calendar },
+    ],
+  },
+  {
+    title: "CATÁLOGOS",
+    items: [
+      { href: "/catalog/countries", label: "Países", icon: Globe },
+      { href: "/catalog/states", label: "Estados", icon: Layers },
+      { href: "/catalog/cities", label: "Ciudades", icon: MapPin },
+      { href: "/catalog/event-categories", label: "Categorías", icon: Tag },
+      { href: "/catalog/event-types", label: "Tipos de Evento", icon: Database },
     ],
   },
 ];
@@ -81,6 +102,8 @@ export default function Sidebar({ isOpen, onToggle, visible }: SidebarProps) {
   const initials =
     (user?.firstName?.[0]?.toUpperCase() || userEmail[0]?.toUpperCase() || "?") +
     (user?.lastName?.[0]?.toUpperCase() || "");
+
+  const menuSections = isAdmin ? [...mainSections, ...adminSections] : mainSections;
 
   return (
     <aside

@@ -42,4 +42,12 @@ public class CountriesController : ControllerBase
         var success = await _bus.InvokeAsync<bool>(command);
         return success ? Ok(ApiResponse<object>.Ok(null, "País actualizado")) : NotFound();
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/toggle")]
+    public async Task<IActionResult> Toggle(int id)
+    {
+        var success = await _bus.InvokeAsync<bool>(new ToggleCountryCommand(id));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Estado actualizado")) : NotFound();
+    }
 }

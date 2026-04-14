@@ -43,6 +43,7 @@ public class GetEventsPagedHandler
             query.MinCreatedAt,
             query.OnlyAvailable,
             isActiveFilter,
+            query.Status,
             query.AccessCode,
             query.SortBy,
             query.IsAscending);

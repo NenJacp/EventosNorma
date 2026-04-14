@@ -150,6 +150,22 @@ public class UsersController : ControllerBase
         var success = await _bus.InvokeAsync<bool>(command);
         return success ? Ok(ApiResponse<object>.Ok(null, "Perfil actualizado correctamente.")) : BadRequest();
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/ban")]
+    public async Task<IActionResult> BanUser(int id, [FromBody] BanUserCommand command)
+    {
+        var success = await _bus.InvokeAsync<bool>(new BanUserCommand(id, command.Reason));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Usuario baneado correctamente")) : BadRequest(ApiResponse<object>.Fail("No se pudo banear al usuario"));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/unban")]
+    public async Task<IActionResult> UnbanUser(int id)
+    {
+        var success = await _bus.InvokeAsync<bool>(new UnbanUserCommand(id));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Usuario desbaneado correctamente")) : BadRequest(ApiResponse<object>.Fail("No se pudo desbanear al usuario"));
+    }
 }
 
 public record BanUserRequest(string? Reason);

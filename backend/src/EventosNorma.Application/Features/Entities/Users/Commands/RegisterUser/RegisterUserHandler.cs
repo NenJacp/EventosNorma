@@ -49,16 +49,15 @@ public class RegisterUserHandler
         );
 
         return new UserViewModel(
-            user.Id,
-            user.FirstName,
-            user.LastName,
+            user.Id, 
+            user.FirstName, 
+            user.LastName, 
             user.Email,
             user.Role.ToString(),
             user.IsBanned,
             user.BanReason,
             user.BannedAt,
             user.IsActive,
-            user.CreatedAt
-        );
+            user.CreatedAt);
     }
 }

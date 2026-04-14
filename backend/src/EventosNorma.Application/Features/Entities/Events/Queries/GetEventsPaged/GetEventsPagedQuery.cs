@@ -1,4 +1,5 @@
 using EventosNorma.Application.Common.Models;
+using EventosNorma.Domain.Enums;
 
 namespace EventosNorma.Application.Features.Entities.Events.Queries;
 
@@ -21,4 +22,6 @@ public record GetEventsPagedQuery : PaginationParams
     public bool? IsActive { get; init; }
     public string? AccessCode { get; init; }
     public bool? ExcludeJoinedEvents { get; init; }
+    public EventStatus? Status { get; init; }
+    public bool? IncludeInactive { get; init; }
 }

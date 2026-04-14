@@ -42,4 +42,12 @@ public class EventCategoriesController : ControllerBase
         var success = await _bus.InvokeAsync<bool>(command);
         return success ? Ok(ApiResponse<object>.Ok(null, "Categoría actualizada")) : NotFound();
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/toggle")]
+    public async Task<IActionResult> Toggle(int id)
+    {
+        var success = await _bus.InvokeAsync<bool>(new ToggleEventCategoryCommand(id));
+        return success ? Ok(ApiResponse<object>.Ok(null, "Estado actualizado")) : NotFound();
+    }
 }

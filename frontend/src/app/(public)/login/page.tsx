@@ -57,7 +57,7 @@ export default function LoginPage() {
       toast.success(`Bienvenido, ${data?.firstName || "usuario"}`);
 
       if (data?.role === "Admin") {
-        router.push("/admin");
+        router.push("/dashboard");
       } else {
         router.push("/home");
       }

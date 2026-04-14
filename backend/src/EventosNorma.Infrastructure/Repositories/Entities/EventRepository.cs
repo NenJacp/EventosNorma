@@ -1,4 +1,5 @@
 using EventosNorma.Domain.Entities;
+using EventosNorma.Domain.Enums;
 using EventosNorma.Domain.Interfaces;
 using EventosNorma.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +72,7 @@ public class EventRepository : IEventRepository
         DateTime? minCreatedAt = null,
         bool? onlyAvailable = null,
         bool? isActive = null,
+        EventStatus? status = null,
         string? accessCode = null,
         string? sortBy = null,
         bool isAscending = true)
@@ -80,17 +82,16 @@ public class EventRepository : IEventRepository
             .Include(e => e.EventCategory)
             .Include(e => e.EventType)
             .Include(e => e.Creator)
-            .Include(e => e.Members).ThenInclude(m => m.User)
+            .Include(e => e.Members)
+            .ThenInclude(m => m.User)
             .AsQueryable();
 
         // 0. Privacidad y Access Code
-        // Regla: si no se provee AccessCode y el caller no puede incluir privados, ocultarlos.
         if (string.IsNullOrWhiteSpace(accessCode) && !includePrivate)
         {
             query = query.Where(e => !e.IsPrivate);
         }
 
-        // Si se envía AccessCode, debe hacer match exacto:
         if (!string.IsNullOrWhiteSpace(accessCode))
         {
             query = query.Where(e => e.AccessCode == accessCode);
@@ -102,23 +103,29 @@ public class EventRepository : IEventRepository
             query = query.Where(e => e.IsActive == isActive.Value);
         }
 
-        // 2. Búsqueda por título
+        // 2. Filtrado por Status del Evento
+        if (status.HasValue)
+        {
+            query = query.Where(e => e.Status == status.Value);
+        }
+
+        // 3. Búsqueda por título
         if (!string.IsNullOrWhiteSpace(title))
         {
             var lowerSearch = title.ToLower();
             query = query.Where(e => e.Title.ToLower().Contains(lowerSearch));
         }
 
-        // 3. Filtrado por Geografía
+        // 4. Filtrado por Geografía
         if (cityId.HasValue) query = query.Where(e => e.CityId == cityId.Value);
         if (stateId.HasValue) query = query.Where(e => e.City.StateId == stateId.Value);
         if (countryId.HasValue) query = query.Where(e => e.City.State.CountryId == countryId.Value);
 
-        // 4. Filtrado por Categoría y Tipo
+        // 5. Filtrado por Categoría y Tipo
         if (eventCategoryId.HasValue) query = query.Where(e => e.EventCategoryId == eventCategoryId.Value);
         if (eventTypeId.HasValue) query = query.Where(e => e.EventTypeId == eventTypeId.Value);
 
-        // 5. Filtrado por Creador / Participante
+        // 6. Filtrado por Creador / Participante
         if (createdById.HasValue) query = query.Where(e => e.CreatedById == createdById.Value);
         if (excludeCreatedById.HasValue) query = query.Where(e => e.CreatedById != excludeCreatedById.Value);
         
@@ -127,26 +134,26 @@ public class EventRepository : IEventRepository
             query = query.Where(e => e.Members.Any(m => m.UserId == joinedByUserId.Value && m.ExitedAt == null));
         }
 
-        // 6. Rango de Fechas del Evento
+        // 7. Rango de Fechas del Evento
         if (startDate.HasValue) query = query.Where(e => e.StartDate >= startDate.Value);
         if (endDate.HasValue) query = query.Where(e => e.EndDate <= endDate.Value);
 
-        // 7. Fecha de Creación
+        // 8. Fecha de Creación
         if (minCreatedAt.HasValue) query = query.Where(e => e.CreatedAt >= minCreatedAt.Value);
 
-        // 8. Disponibilidad
+        // 9. Disponibilidad
         if (onlyAvailable.HasValue && onlyAvailable.Value)
         {
             query = query.Where(e => e.Members.Count(m => m.ExitedAt == null) < e.MaxCapacity);
         }
 
-        // 9. Ordenamiento Dinámico
+        // 10. Ordenamiento Dinámico
         query = ApplySorting(query, sortBy, isAscending);
 
-        // 10. Total de elementos antes de paginar
+        // 11. Total de elementos antes de paginar
         var totalCount = await query.CountAsync();
 
-        // 11. Paginación y ejecución
+        // 12. Paginación y ejecución
         var items = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)

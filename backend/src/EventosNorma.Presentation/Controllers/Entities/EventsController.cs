@@ -203,4 +203,24 @@ public class EventsController : ControllerBase
 
         return Ok(ApiResponse<object>.Ok(new { imageUrl }, "Imagen del evento actualizada correctamente."));
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/deactivate")]
+    public async Task<IActionResult> DeactivateEvent(int id)
+    {
+        var success = await _bus.InvokeAsync<bool>(new DeactivateEventCommand(id));
+        return success 
+            ? Ok(ApiResponse<object>.Ok(null, "Evento desactivado correctamente")) 
+            : BadRequest(ApiResponse<object>.Fail("No se pudo desactivar el evento"));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/activate")]
+    public async Task<IActionResult> ActivateEvent(int id)
+    {
+        var success = await _bus.InvokeAsync<bool>(new ActivateEventCommand(id));
+        return success 
+            ? Ok(ApiResponse<object>.Ok(null, "Evento activado correctamente")) 
+            : BadRequest(ApiResponse<object>.Fail("No se pudo activar el evento"));
+    }
 }
