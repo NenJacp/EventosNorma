@@ -53,7 +53,6 @@ export default function CommonsLayout({ children }: { children: React.ReactNode 
 
   const menuItems = [
     { href: "/home", label: "Inicio", icon: LayoutGrid },
-    { href: "/events", label: "Eventos", icon: Calendar },
     { href: "/my-events", label: "Mis Eventos", icon: Calendar },
     { href: "/subscriptions", label: "Subscripciones", icon: Heart },
   ];

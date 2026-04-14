@@ -184,21 +184,20 @@ export default function AdminSidebar({ isOpen, onToggle, visible }: AdminSidebar
           </div>
         </Link>
 
-        <div className="flex gap-2">
-          <Link
-            href="/home"
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors text-sm font-medium"
-          >
-            Ver Sitio
-          </Link>
-          <button
-            onClick={handleLogout}
-            disabled={loadingLogout}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-white/10 text-slate-300 hover:bg-white/5 transition-colors text-sm font-medium"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
+        <Link
+          href="/home"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors text-sm font-medium mb-2"
+        >
+          Ver Sitio
+        </Link>
+        <button
+          onClick={handleLogout}
+          disabled={loadingLogout}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-white/10 text-slate-300 hover:bg-white/5 transition-colors text-sm font-medium"
+        >
+          <LogOut size={16} />
+          {loadingLogout ? "Saliendo..." : "Cerrar sesión"}
+        </button>
       </div>
     </aside>
   );

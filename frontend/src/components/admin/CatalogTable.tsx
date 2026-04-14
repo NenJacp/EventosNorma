@@ -56,6 +56,8 @@ export default function CatalogTable<T extends CatalogItem>({
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [confirmingDeactivate, setConfirmingDeactivate] = useState<{ id: number; name: string } | null>(null);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
 
   const filteredItems = items.filter((item) => {
     const matchesSearch =
@@ -119,11 +121,23 @@ export default function CatalogTable<T extends CatalogItem>({
   };
 
   const handleToggle = async (id: number) => {
+    setTogglingId(id);
     try {
       await onToggle(id);
       onRefresh();
     } catch (err) {
       console.error("Error toggling item:", err);
+    } finally {
+      setTogglingId(null);
+      setConfirmingDeactivate(null);
+    }
+  };
+
+  const handleToggleClick = (item: T) => {
+    if (item.isActive) {
+      setConfirmingDeactivate({ id: item.id, name: item.name });
+    } else {
+      handleToggle(item.id);
     }
   };
 
@@ -242,15 +256,18 @@ export default function CatalogTable<T extends CatalogItem>({
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => handleToggle(item.id)}
-                          className={`p-2 rounded-lg transition-colors ${
+                          onClick={() => handleToggleClick(item)}
+                          disabled={togglingId === item.id}
+                          className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
                             item.isActive
                               ? "text-green-600 hover:bg-green-50"
                               : "text-red-600 hover:bg-red-50"
                           }`}
                           title={item.isActive ? "Desactivar" : "Activar"}
                         >
-                          {item.isActive ? (
+                          {togglingId === item.id ? (
+                            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          ) : item.isActive ? (
                             <ToggleRight size={20} />
                           ) : (
                             <ToggleLeft size={20} />
@@ -377,6 +394,45 @@ export default function CatalogTable<T extends CatalogItem>({
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </>
+      )}
+
+      {confirmingDeactivate && (
+        <>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={() => setConfirmingDeactivate(null)} />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <h2 className="text-lg font-semibold text-slate-900">Confirmar desactivación</h2>
+                <button onClick={() => setConfirmingDeactivate(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6">
+                <p className="text-slate-600 mb-2">
+                  ¿Estás seguro de que quieres desactivar <strong>{confirmingDeactivate.name}</strong>?
+                </p>
+                <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">
+                  Este elemento ya no será visible en la aplicación.
+                </p>
+              </div>
+              <div className="flex gap-3 px-6 py-4 border-t border-slate-200">
+                <button
+                  onClick={() => setConfirmingDeactivate(null)}
+                  className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleToggle(confirmingDeactivate.id)}
+                  disabled={togglingId !== null}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  Desactivar
+                </button>
+              </div>
             </div>
           </div>
         </>

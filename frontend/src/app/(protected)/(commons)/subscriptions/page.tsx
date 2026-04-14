@@ -8,6 +8,49 @@ import Pagination from "@/components/Pagination";
 import { toast } from "@/lib/toast";
 import type { SubscriptionViewModel } from "@/types/events";
 
+interface ApiSubscriptionResponse {
+  EventId: number;
+  Title: string;
+  Description: string;
+  StartDate: string;
+  EndDate: string;
+  LocationDetail: string;
+  CityName: string;
+  CategoryName: string;
+  TypeName: string;
+  CreatorName: string;
+  Status: string;
+  JoinedAt: string;
+  IsActive: boolean;
+  MaxCapacity: number;
+  CurrentCapacity: number;
+  HasExited: boolean;
+}
+
+function mapApiToSubscription(apiItem: ApiSubscriptionResponse): SubscriptionViewModel {
+  const isFull = apiItem.MaxCapacity > 0 && apiItem.CurrentCapacity >= apiItem.MaxCapacity;
+  return {
+    eventId: apiItem.EventId,
+    title: apiItem.Title,
+    description: apiItem.Description,
+    startDate: apiItem.StartDate,
+    endDate: apiItem.EndDate,
+    locationDetail: apiItem.LocationDetail,
+    cityName: apiItem.CityName,
+    categoryName: apiItem.CategoryName,
+    typeName: apiItem.TypeName,
+    creatorName: apiItem.CreatorName,
+    status: apiItem.Status as SubscriptionViewModel["status"],
+    joinedAt: apiItem.JoinedAt,
+    isActive: apiItem.IsActive,
+    maxCapacity: apiItem.MaxCapacity,
+    currentCapacity: apiItem.CurrentCapacity,
+    hasExited: apiItem.HasExited,
+    isFull,
+    availableSlots: apiItem.MaxCapacity - apiItem.CurrentCapacity,
+  };
+}
+
 const categoryBg: Record<string, string> = {
   Música: "bg-blue-100 text-blue-700",
   Tecnología: "bg-purple-100 text-purple-700",
@@ -28,10 +71,10 @@ export default function SubscriptionsPage() {
   const fetchMySubscriptions = async (page: number) => {
     setLoading(true);
     try {
-      const data = await apiFetch<{ items: SubscriptionViewModel[]; totalCount: number; totalPages: number }>(
+      const data = await apiFetch<{ items: ApiSubscriptionResponse[]; totalCount: number; totalPages: number }>(
         `/api/events/me/joined?PageNumber=${page}&PageSize=12`
       );
-      setEvents(data.items || []);
+      setEvents((data.items || []).map(mapApiToSubscription));
       setTotalPages(data.totalPages || 1);
       setTotalCount(data.totalCount || 0);
       setCurrentPage(page);
