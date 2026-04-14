@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Calendar, LogOut, Menu, X, LayoutGrid, Heart, User, Users, Globe, MapPin, Layers, Tag, Database, BarChart3 } from "lucide-react";
+import { Calendar, LogOut, Menu, X, LayoutGrid, Heart, User, Users, Globe, MapPin, Layers, Tag, Database, BarChart3, Shield } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 
