@@ -72,6 +72,7 @@ export default function StatesPage() {
   return (
     <CatalogTable
       title="Estados"
+      singularTitle="Estado"
       subtitle="Gestión de estados/regiones"
       items={items}
       loading={loading}

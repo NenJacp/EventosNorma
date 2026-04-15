@@ -77,6 +77,7 @@ export default function CitiesPage() {
   return (
     <CatalogTable
       title="Ciudades"
+      singularTitle="Ciudad"
       subtitle="Gestión de ciudades"
       items={items}
       loading={loading}

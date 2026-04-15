@@ -62,6 +62,7 @@ export default function CountriesPage() {
   return (
     <CatalogTable
       title="Países"
+      singularTitle="País"
       subtitle="Gestión de países"
       items={items}
       loading={loading}

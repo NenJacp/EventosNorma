@@ -81,10 +81,10 @@ export default function UserSidebar({ isOpen, onToggle, visible }: UserSidebarPr
   return (
     <aside
       className={`
-      fixed inset-y-0 left-0 w-64 bg-[#0f172a] text-slate-400 transform transition-transform duration-200 z-40 flex flex-col
-      ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
-      ${visible ? "md:translate-x-0" : "md:-translate-x-full"}
-    `}
+        fixed inset-y-0 left-0 w-64 bg-[#0f172a] text-slate-400 flex flex-col z-40
+        transition-transform duration-200 ease-out
+        ${visible || isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
     >
       <div className="flex items-center gap-3 px-6 py-6 border-b border-white/5">
         <div className="w-2 h-2 rounded-full bg-blue-500" />

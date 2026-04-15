@@ -18,6 +18,7 @@ interface CatalogItem {
 interface CatalogTableProps<T extends CatalogItem> {
   title: string;
   subtitle: string;
+  singularTitle?: string;
   items: T[];
   loading: boolean;
   onRefresh: () => void;
@@ -34,6 +35,7 @@ interface CatalogTableProps<T extends CatalogItem> {
 export default function CatalogTable<T extends CatalogItem>({
   title,
   subtitle,
+  singularTitle,
   items,
   loading,
   onRefresh,
@@ -319,7 +321,7 @@ export default function CatalogTable<T extends CatalogItem>({
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
               <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
                 <h2 className="text-lg font-semibold text-slate-900">
-                  {editingItem ? "Editar" : "Nuevo"} {title.replace(/s$/, "")}
+                  {editingItem ? "Editar" : "Nuevo"} {singularTitle || title.replace(/s$/, "")}
                 </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}

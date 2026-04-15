@@ -61,6 +61,7 @@ export default function EventTypesPage() {
   return (
     <CatalogTable
       title="Tipos de Evento"
+      singularTitle="Tipo de evento"
       subtitle="Gestión de tipos de evento"
       items={items}
       loading={loading}
