@@ -168,12 +168,16 @@ export default function AdminSidebar({ isOpen, onToggle, visible }: AdminSidebar
 
       <div className="border-t border-white/5 p-4 bg-[#0b1121]">
         <Link
-          href="/home"
+          href="/profile"
           className="flex items-center gap-3 px-2 mb-4 hover:bg-white/5 rounded-lg p-1 -mx-1 transition-colors"
         >
-          <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white font-semibold text-sm">
-            {initials}
-          </div>
+          {user?.profileImage && user.profileImage.trim() ? (
+            <img src={user.profileImage} alt="Foto de perfil" className="w-10 h-10 rounded-full object-cover border border-white/10" />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white font-semibold text-sm">
+              {initials}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white truncate">
               {fullName}
