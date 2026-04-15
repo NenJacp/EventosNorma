@@ -284,6 +284,8 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
       }
 
       const isEditing = !!editEvent;
+      const imageUrl = imagePreview || "/defaults/event.png";
+      
       const payload = isEditing
         ? {
             id: editEvent!.id,
@@ -297,7 +299,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
             eventTypeId: eventTypeId,
             isPrivate: form.isPrivate,
             maxCapacity: maxCapacity,
-            imageUrl: imagePreview,
+            imageUrl: imageUrl,
           }
         : {
             title: form.title,
@@ -310,7 +312,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
             eventTypeId: eventTypeId,
             isPrivate: form.isPrivate,
             maxCapacity: maxCapacity,
-            imageUrl: imagePreview,
+            imageUrl: imageUrl,
           };
 
       const url = isEditing ? `/api/events/${editEvent!.id}` : "/api/events";
