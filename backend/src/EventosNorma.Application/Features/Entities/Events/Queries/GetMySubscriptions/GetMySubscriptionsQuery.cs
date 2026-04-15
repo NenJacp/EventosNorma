@@ -25,6 +25,7 @@ public class GetMySubscriptionsHandler
         var viewModels = items.Select(m => new SubscriptionViewModel(
             m.Event.Id,
             m.Event.Title,
+            m.Event.Slug,
             m.Event.Description,
             m.Event.StartDate,
             m.Event.EndDate,
@@ -52,6 +53,7 @@ public class GetMySubscriptionsHandler
 public record SubscriptionViewModel(
     int EventId,
     string Title,
+    string Slug,
     string Description,
     DateTime StartDate,
     DateTime EndDate,

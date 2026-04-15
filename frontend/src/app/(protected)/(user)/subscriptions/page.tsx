@@ -11,6 +11,7 @@ import type { SubscriptionViewModel } from "@/types/events";
 interface ApiSubscriptionResponse {
   EventId: number;
   Title: string;
+  Slug: string;
   Description: string;
   StartDate: string;
   EndDate: string;
@@ -31,6 +32,7 @@ function mapApiToSubscription(apiItem: ApiSubscriptionResponse): SubscriptionVie
   const isFull = apiItem.MaxCapacity > 0 && apiItem.CurrentCapacity >= apiItem.MaxCapacity;
   return {
     eventId: apiItem.EventId,
+    slug: apiItem.Slug,
     title: apiItem.Title,
     description: apiItem.Description,
     startDate: apiItem.StartDate,
@@ -166,7 +168,7 @@ export default function SubscriptionsPage() {
                   
                   return (
                     <div key={event.eventId} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-                      <Link href={`/events/${event.eventId}`}>
+                      <Link href={`/events/${event.slug}`}>
                         <div className="w-full h-36 overflow-hidden bg-slate-100">
                           <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
                             <span className="text-4xl font-bold text-blue-300">{event.title[0]?.toUpperCase()}</span>
@@ -184,7 +186,7 @@ export default function SubscriptionsPage() {
                           </span>
                         </div>
                         
-                        <Link href={`/events/${event.eventId}`} className="block">
+                        <Link href={`/events/${event.slug}`} className="block">
                           <h3 className="text-sm font-semibold text-slate-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
                             {event.title}
                           </h3>
@@ -237,7 +239,7 @@ export default function SubscriptionsPage() {
                   
                   return (
                     <div key={event.eventId} className="bg-white rounded-xl border border-red-200 overflow-hidden opacity-75">
-                      <Link href={`/events/${event.eventId}`}>
+                      <Link href={`/events/${event.slug}`}>
                         <div className="w-full h-36 overflow-hidden bg-slate-100 grayscale">
                           <div className="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
                             <span className="text-4xl font-bold text-red-300">{event.title[0]?.toUpperCase()}</span>
@@ -255,7 +257,7 @@ export default function SubscriptionsPage() {
                           </span>
                         </div>
                         
-                        <Link href={`/events/${event.eventId}`} className="block">
+                        <Link href={`/events/${event.slug}`} className="block">
                           <h3 className="text-sm font-semibold text-slate-900 mb-2 line-clamp-2">
                             {event.title}
                           </h3>

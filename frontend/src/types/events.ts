@@ -29,6 +29,7 @@ export type EventStatus = "Draft" | "Published" | "Cancelled" | "Closed" | "Open
 
 export interface SubscriptionViewModel {
   eventId: number;
+  slug: string;
   title: string;
   description: string;
   startDate: string;
