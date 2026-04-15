@@ -207,7 +207,6 @@ export default function CatalogTable<T extends CatalogItem>({
                   {parentLabel && (
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{parentLabel}</th>
                   )}
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Registros relacionados</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
                   <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -237,11 +236,6 @@ export default function CatalogTable<T extends CatalogItem>({
                         </span>
                       </td>
                     )}
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">
-                        {item.relatedCount ?? 0}
-                      </span>
-                    </td>
                     <td className="px-6 py-4">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${

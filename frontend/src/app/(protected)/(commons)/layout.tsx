@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Shield } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Calendar, LayoutGrid, Heart, User, LogOut, Shield } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 interface SidebarUser {
@@ -51,12 +51,6 @@ export default function CommonsLayout({ children }: { children: React.ReactNode 
   const fullName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || userEmail || "Usuario";
   const initials = (user?.firstName?.[0]?.toUpperCase() || userEmail[0]?.toUpperCase() || "?") + (user?.lastName?.[0]?.toUpperCase() || "");
 
-  const menuItems = [
-    { href: "/home", label: "Inicio", icon: LayoutGrid },
-    { href: "/my-events", label: "Mis Eventos", icon: Calendar },
-    { href: "/subscriptions", label: "Subscripciones", icon: Heart },
-  ];
-
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900 font-sans">
       <button onClick={() => setIsOpen(!isOpen)} className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-[#0f172a] text-white md:hidden shadow-md">
@@ -73,25 +67,6 @@ export default function CommonsLayout({ children }: { children: React.ReactNode 
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 space-y-6">
-          <div>
-            <h3 className="px-6 mb-3 text-[11px] font-semibold text-slate-500 tracking-wider">NAVEGACIÓN</h3>
-            <ul className="space-y-1 px-3">
-              {menuItems.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-                const Icon = item.icon;
-                return (
-                  <li key={item.href}>
-                    <Link href={item.href} onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive ? "bg-[#1e293b] text-white relative before:absolute before:left-[-12px] before:top-0 before:bottom-0 before:w-1 before:bg-blue-500" : "hover:bg-white/5 hover:text-white"}`}>
-                      <Icon size={18} className={isActive ? "text-slate-300" : "text-slate-500"} />
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
           {isAdmin && (
             <div>
               <h3 className="px-6 mb-3 text-[11px] font-semibold text-amber-500 tracking-wider">ADMINISTRACIÓN</h3>
