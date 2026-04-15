@@ -184,12 +184,6 @@ export default function AdminSidebar({ isOpen, onToggle, visible }: AdminSidebar
           </div>
         </Link>
 
-        <Link
-          href="/home"
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors text-sm font-medium mb-2"
-        >
-          Ver Sitio
-        </Link>
         <button
           onClick={handleLogout}
           disabled={loadingLogout}

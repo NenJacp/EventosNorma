@@ -109,7 +109,7 @@ export default function CommonsLayout({ children }: { children: React.ReactNode 
 
         <div className="border-t border-white/5 p-4 bg-[#0b1121]">
           <Link href="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-2 mb-4 hover:bg-white/5 rounded-lg p-1 -mx-1 transition-colors">
-            {user?.profileImage && user.profileImage.includes("/uploads") ? (
+            {user?.profileImage && user.profileImage.trim() ? (
               <img src={user.profileImage} alt="Foto de perfil" className="w-10 h-10 rounded-full object-cover border border-white/10" />
             ) : (
               <div className="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center text-blue-400 font-semibold text-sm border border-white/10">{initials}</div>
