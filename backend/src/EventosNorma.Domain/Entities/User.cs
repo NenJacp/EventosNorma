@@ -111,7 +111,6 @@ public partial class User : IAuditableEntity
         IsBanned = true;
         BanReason = !string.IsNullOrWhiteSpace(reason) ? reason.Trim() : "No se especificó un motivo.";
         BannedAt = DateTime.UtcNow;
-        IsActive = false;
     }
 
     public void Unban()
@@ -121,6 +120,7 @@ public partial class User : IAuditableEntity
         IsBanned = false;
         BanReason = null;
         BannedAt = null;
+        IsActive = true;
     }
 
     public void ChangeRole(UserRole newRole)
