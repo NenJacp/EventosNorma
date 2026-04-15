@@ -159,7 +159,7 @@ export default function AdminDashboard() {
                         : "bg-slate-100 text-slate-700"
                     }`}
                   >
-                    {event.status === "Open" ? "Activo" : event.status === "Cancelled" ? "Cancelado" : event.status}
+                    {event.status === "Open" ? "Abierto" : event.status === "Cancelled" ? "Cancelado" : event.status === "Closed" ? "Cerrado" : event.status}
                   </span>
                 </Link>
               ))

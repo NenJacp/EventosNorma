@@ -264,7 +264,7 @@ export default function EventDetailPage() {
                     </span>
                   )}
                   <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${statusStyle.bg} ${statusStyle.text}`}>
-                    {event.status === "Cancelled" ? "Cancelado" : event.status === "Open" ? "Activo" : event.status}
+                    {event.status === "Cancelled" ? "Cancelado" : event.status === "Closed" ? "Cerrado" : event.status === "Open" ? "Abierto" : event.status}
                   </span>
                 </div>
                 <h1 className="text-2xl font-bold text-slate-900">{event.title}</h1>

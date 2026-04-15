@@ -23,7 +23,7 @@ interface EventItem {
 }
 
 const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-  Open: { bg: "bg-green-100", text: "text-green-700", label: "Activo" },
+  Open: { bg: "bg-green-100", text: "text-green-700", label: "Abierto" },
   Cancelled: { bg: "bg-red-100", text: "text-red-700", label: "Cancelado" },
   Closed: { bg: "bg-slate-100", text: "text-slate-700", label: "Cerrado" },
 };
@@ -155,7 +155,7 @@ export default function AdminEventsPage() {
             className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           >
             <option value="">Todos los estados</option>
-            <option value="Open">Activos</option>
+            <option value="Open">Abiertos</option>
             <option value="Cancelled">Cancelados</option>
             <option value="Closed">Cerrados</option>
           </select>
