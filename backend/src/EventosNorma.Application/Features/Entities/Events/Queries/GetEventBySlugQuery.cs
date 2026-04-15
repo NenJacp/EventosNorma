@@ -1,4 +1,5 @@
 using EventosNorma.Application.Features.Entities.Events.ViewModels;
+using EventosNorma.Domain.Enums;
 using EventosNorma.Domain.Interfaces;
 
 namespace EventosNorma.Application.Features.Entities.Events.Queries;
@@ -34,7 +35,8 @@ public class GetEventBySlugHandler
         }
 
         var showAccessCode = currentUserService.IsAdmin || isCreator || isMember;
-        var showJoinButton = e.IsPrivate && !isCreator && !isMember;
+        var isFull = e.MaxCapacity > 0 && e.Members.Count(m => m.JoinedAt != null && m.ExitedAt == null) >= e.MaxCapacity;
+        var showJoinButton = !isCreator && !isMember && e.Status == EventStatus.Open && !isFull;
 
         return new EventViewModel(
             e.Id,
@@ -44,8 +46,15 @@ public class GetEventBySlugHandler
             e.StartDate,
             e.EndDate,
             e.LocationDetail,
+            e.CityId,
             e.City.Name,
+            e.City.StateId,
+            e.City.State.Name,
+            e.City.State.CountryId,
+            e.City.State.Country.Name,
+            e.EventCategoryId,
             e.EventCategory.Name,
+            e.EventTypeId,
             e.EventType.Name,
             $"{e.Creator.FirstName} {e.Creator.LastName}",
             e.Status,

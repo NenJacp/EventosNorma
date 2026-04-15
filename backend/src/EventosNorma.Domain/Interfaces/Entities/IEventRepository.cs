@@ -33,4 +33,5 @@ public interface IEventRepository
     Task AddAsync(Event @event);
     Task UpdateAsync(Event @event);
     Task SaveChangesAsync();
+    Task<bool> IsSlugUniqueAsync(string slug, int? excludeEventId = null);
 }

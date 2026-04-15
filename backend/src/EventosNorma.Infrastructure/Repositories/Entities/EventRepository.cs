@@ -19,7 +19,7 @@ public class EventRepository : IEventRepository
     public async Task<Event?> GetByIdAsync(int id)
     {
         return await _context.Events
-            .Include(e => e.City)
+            .Include(e => e.City).ThenInclude(c => c.State).ThenInclude(s => s.Country)
             .Include(e => e.EventCategory)
             .Include(e => e.EventType)
             .Include(e => e.Creator)
@@ -30,7 +30,7 @@ public class EventRepository : IEventRepository
     public async Task<Event?> GetBySlugAsync(string slug)
     {
         return await _context.Events
-            .Include(e => e.City)
+            .Include(e => e.City).ThenInclude(c => c.State).ThenInclude(s => s.Country)
             .Include(e => e.EventCategory)
             .Include(e => e.EventType)
             .Include(e => e.Creator)
@@ -78,7 +78,7 @@ public class EventRepository : IEventRepository
         bool isAscending = true)
     {
         var query = _context.Events
-            .Include(e => e.City)
+            .Include(e => e.City).ThenInclude(c => c.State).ThenInclude(s => s.Country)
             .Include(e => e.EventCategory)
             .Include(e => e.EventType)
             .Include(e => e.Creator)
@@ -191,5 +191,15 @@ public class EventRepository : IEventRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> IsSlugUniqueAsync(string slug, int? excludeEventId = null)
+    {
+        var query = _context.Events.Where(e => e.Slug == slug);
+        if (excludeEventId.HasValue)
+        {
+            query = query.Where(e => e.Id != excludeEventId.Value);
+        }
+        return !await query.AnyAsync();
     }
 }

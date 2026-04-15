@@ -1,3 +1,4 @@
+using EventosNorma.Application.Common.Helpers;
 using EventosNorma.Domain.Entities;
 using EventosNorma.Domain.Interfaces;
 
@@ -17,6 +18,8 @@ public class CreateEventHandler
     {
         var creatorId = currentUserService.UserId ?? throw new UnauthorizedAccessException("Debe iniciar sesión para crear eventos.");
 
+        var slug = await SlugHelper.GenerateUniqueSlugAsync(command.Title, repository);
+
         var @event = Event.Create(
             command.Title,
             command.Description,
@@ -30,7 +33,8 @@ public class CreateEventHandler
             creatorId,
             command.MaxCapacity,
             false,
-            command.ImageUrl);
+            command.ImageUrl,
+            slug);
 
         await repository.AddAsync(@event);
         await repository.SaveChangesAsync();

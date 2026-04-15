@@ -11,8 +11,15 @@ public record EventViewModel(
     DateTime StartDate,
     DateTime EndDate,
     string LocationDetail,
+    int CityId,
     string CityName,
+    int StateId,
+    string StateName,
+    int CountryId,
+    string CountryName,
+    int EventCategoryId,
     string EventCategoryName,
+    int EventTypeId,
     string EventTypeName,
     string CreatorName,
     EventStatus Status,
@@ -24,7 +31,9 @@ public record EventViewModel(
     string? ImageUrl,
     bool IsCreator,
     bool IsMember,
-    bool ShowJoinButton = false)
+    bool ShowJoinButton = false,
+    DateTime? JoinedAt = null,
+    bool HasExited = false)
 {
     public bool IsFull => MaxCapacity > 0 && CurrentCapacity >= MaxCapacity;
     public int AvailableSlots => MaxCapacity - CurrentCapacity;

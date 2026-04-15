@@ -1,55 +1,58 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, LogOut, Calendar, MapPin, XCircle } from "lucide-react";
+import { Users, LogOut, Calendar, MapPin, XCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import Pagination from "@/components/Pagination";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { toast } from "@/lib/toast";
-import type { SubscriptionViewModel } from "@/types/events";
+import type { EventViewModel, EventStatus } from "@/types/events";
 
 interface ApiSubscriptionResponse {
-  EventId: number;
-  Title: string;
-  Slug: string;
-  Description: string;
-  StartDate: string;
-  EndDate: string;
-  LocationDetail: string;
-  CityName: string;
-  CategoryName: string;
-  TypeName: string;
-  CreatorName: string;
-  Status: string;
-  JoinedAt: string;
-  IsActive: boolean;
-  MaxCapacity: number;
-  CurrentCapacity: number;
-  HasExited: boolean;
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  locationDetail: string;
+  cityName: string;
+  eventCategoryName: string;
+  eventTypeName: string;
+  creatorName: string;
+  status: EventStatus;
+  joinedAt: string | null;
+  isActive: boolean;
+  maxCapacity: number;
+  currentCapacity: number;
+  hasExited: boolean;
+  isFull: boolean;
+  availableSlots: number;
 }
 
-function mapApiToSubscription(apiItem: ApiSubscriptionResponse): SubscriptionViewModel {
-  const isFull = apiItem.MaxCapacity > 0 && apiItem.CurrentCapacity >= apiItem.MaxCapacity;
+function mapApiToSubscription(apiItem: ApiSubscriptionResponse) {
   return {
-    eventId: apiItem.EventId,
-    slug: apiItem.Slug,
-    title: apiItem.Title,
-    description: apiItem.Description,
-    startDate: apiItem.StartDate,
-    endDate: apiItem.EndDate,
-    locationDetail: apiItem.LocationDetail,
-    cityName: apiItem.CityName,
-    categoryName: apiItem.CategoryName,
-    typeName: apiItem.TypeName,
-    creatorName: apiItem.CreatorName,
-    status: apiItem.Status as SubscriptionViewModel["status"],
-    joinedAt: apiItem.JoinedAt,
-    isActive: apiItem.IsActive,
-    maxCapacity: apiItem.MaxCapacity,
-    currentCapacity: apiItem.CurrentCapacity,
-    hasExited: apiItem.HasExited,
-    isFull,
-    availableSlots: apiItem.MaxCapacity - apiItem.CurrentCapacity,
+    eventId: apiItem.id,
+    slug: apiItem.slug,
+    title: apiItem.title,
+    description: apiItem.description,
+    startDate: apiItem.startDate,
+    endDate: apiItem.endDate,
+    locationDetail: apiItem.locationDetail,
+    cityName: apiItem.cityName,
+    categoryName: apiItem.eventCategoryName,
+    typeName: apiItem.eventTypeName,
+    creatorName: apiItem.creatorName,
+    status: apiItem.status,
+    joinedAt: apiItem.joinedAt || apiItem.startDate,
+    isActive: apiItem.isActive,
+    maxCapacity: apiItem.maxCapacity,
+    currentCapacity: apiItem.currentCapacity,
+    hasExited: apiItem.hasExited,
+    isFull: apiItem.isFull,
+    availableSlots: apiItem.availableSlots,
   };
 }
 
@@ -63,15 +66,20 @@ const categoryBg: Record<string, string> = {
 };
 
 export default function SubscriptionsPage() {
-  const [events, setEvents] = useState<SubscriptionViewModel[]>([]);
+  const router = useRouter();
+  const [events, setEvents] = useState<ReturnType<typeof mapApiToSubscription>[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [leavingId, setLeavingId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [eventToLeave, setEventToLeave] = useState<number | null>(null);
 
   const fetchMySubscriptions = async (page: number) => {
     setLoading(true);
+    setError(null);
     try {
       const data = await apiFetch<{ items: ApiSubscriptionResponse[]; totalCount: number; totalPages: number }>(
         `/api/events/me/joined?PageNumber=${page}&PageSize=12`
@@ -82,9 +90,13 @@ export default function SubscriptionsPage() {
       setCurrentPage(page);
     } catch (err) {
       if (err instanceof ApiError) {
-        toast.error(err.message);
+        if (err.status === 401) {
+          router.push("/login");
+        } else {
+          setError(err.message);
+        }
       } else {
-        toast.error("Error al cargar tus subscripciones");
+        setError("Error al cargar tus subscripciones");
       }
     } finally {
       setLoading(false);
@@ -99,14 +111,16 @@ export default function SubscriptionsPage() {
     fetchMySubscriptions(page);
   };
 
-  const handleLeave = async (eventId: number) => {
-    if (!confirm("¿Estás seguro de que quieres abandonar este evento?")) return;
+  const handleLeave = async () => {
+    if (!eventToLeave) return;
     
-    setLeavingId(eventId);
+    setLeavingId(eventToLeave);
     try {
-      await apiFetch(`/api/events/${eventId}/leave`, { method: "POST" });
+      await apiFetch(`/api/events/${eventToLeave}/leave`, { method: "POST" });
       toast.success("Has abandonado el evento correctamente");
       fetchMySubscriptions(currentPage);
+      setShowLeaveModal(false);
+      setEventToLeave(null);
     } catch (err) {
       if (err instanceof ApiError) {
         toast.error(err.message);
@@ -146,16 +160,38 @@ export default function SubscriptionsPage() {
       </span>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-slate-500">Cargando tus inscripciones...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-20 bg-red-50 rounded-xl border border-red-200">
+          <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
+          <p className="text-red-600 font-medium mb-2">Error al cargar</p>
+          <p className="text-red-500 text-sm mb-4">{error}</p>
+          <button
+            onClick={() => fetchMySubscriptions(currentPage)}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Reintentar
+          </button>
         </div>
       ) : events.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-xl border border-slate-200">
-          <Users size={48} className="mx-auto text-slate-300 mb-4" />
-          <p className="text-slate-500 mb-2">No te has unido a ningún evento aún</p>
-          <p className="text-sm text-slate-400">
-            Explora eventos disponibles y únete a ellos
+          <div className="w-20 h-20 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-4">
+            <Users size={40} className="text-blue-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">No tienes inscripciones</h3>
+          <p className="text-slate-500 mb-6 max-w-md mx-auto">
+            Explora eventos activos y únete a los que te interesen para verlos aquí.
           </p>
+          <Link
+            href="/home"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+          >
+            <Calendar size={18} />
+            Explorar eventos
+          </Link>
         </div>
       ) : (
         <>
@@ -212,7 +248,7 @@ export default function SubscriptionsPage() {
                         </div>
                         
                         <button
-                          onClick={() => handleLeave(event.eventId)}
+                          onClick={() => { setEventToLeave(event.eventId); setShowLeaveModal(true); }}
                           disabled={leavingId === event.eventId}
                           className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
                         >
@@ -271,7 +307,7 @@ export default function SubscriptionsPage() {
                         </div>
                         
                         <button
-                          onClick={() => handleLeave(event.eventId)}
+                          onClick={() => { setEventToLeave(event.eventId); setShowLeaveModal(true); }}
                           disabled={leavingId === event.eventId}
                           className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
                         >
@@ -295,6 +331,17 @@ export default function SubscriptionsPage() {
           </div>
         </>
       )}
+
+      <ConfirmationModal
+        isOpen={showLeaveModal}
+        onClose={() => { setShowLeaveModal(false); setEventToLeave(null); }}
+        onConfirm={handleLeave}
+        title="Abandonar evento"
+        message="¿Estás seguro de que quieres abandonar este evento? Perderás tu lugar y tendrás que unirte nuevamente si lo deseas."
+        confirmText={leavingId ? "Abandonando..." : "Sí, abandonar"}
+        variant="danger"
+        loading={!!leavingId}
+      />
     </div>
   );
 }

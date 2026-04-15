@@ -40,7 +40,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
   const [selectedState, setSelectedState] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [initialCityId, setInitialCityId] = useState<string>("");
+  const [catalogsLoaded, setCatalogsLoaded] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -97,7 +97,6 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
       });
       
       setImagePreview(editEvent.imageUrl || null);
-      setInitialCityId("");
     }
   }, [editEvent]);
 
@@ -112,12 +111,36 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
       setCountries(countriesRes || []);
       setCategories(categoriesRes || []);
       setTypes(typesRes || []);
+      
+      if (editEvent) {
+        setForm(prev => ({
+          ...prev,
+          eventCategoryId: editEvent.eventCategoryId.toString(),
+          eventTypeId: editEvent.eventTypeId.toString(),
+        }));
+        
+        setSelectedCountry(editEvent.countryId.toString());
+        const statesRes = await apiFetch<StateViewModel[]>(`/api/states/country/${editEvent.countryId}`);
+        setStates(statesRes || []);
+        
+        setSelectedState(editEvent.stateId.toString());
+        const citiesRes = await apiFetch<CityViewModel[]>(`/api/cities/state/${editEvent.stateId}`);
+        setCities(citiesRes || []);
+        
+        setForm(prev => ({
+          ...prev,
+          cityId: editEvent.cityId.toString(),
+        }));
+      }
+      
+      setCatalogsLoaded(true);
     } catch (err) {
       if (err instanceof ApiError) {
         toast.error(err.message);
       } else {
         toast.error("Error al cargar catálogos");
       }
+      setCatalogsLoaded(true);
     }
   };
 
@@ -195,32 +218,78 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
     setLoading(true);
 
     try {
+      const cityId = parseInt(form.cityId);
+      const eventCategoryId = parseInt(form.eventCategoryId);
+      const eventTypeId = parseInt(form.eventTypeId);
+      const maxCapacity = parseInt(form.maxCapacity);
+
+      if (isNaN(cityId) || cityId <= 0) {
+        toast.error("Por favor selecciona una ciudad");
+        setLoading(false);
+        return;
+      }
+      if (isNaN(eventCategoryId) || eventCategoryId <= 0) {
+        toast.error("Por favor selecciona una categoría");
+        setLoading(false);
+        return;
+      }
+      if (isNaN(eventTypeId) || eventTypeId <= 0) {
+        toast.error("Por favor selecciona un tipo de evento");
+        setLoading(false);
+        return;
+      }
+      if (isNaN(maxCapacity) || maxCapacity <= 0) {
+        toast.error("La capacidad debe ser mayor a 0");
+        setLoading(false);
+        return;
+      }
+
       const startDateTime =
         form.startDate && form.startTime
-          ? new Date(`${form.startDate}T${form.startTime}:00`).toISOString()
-          : new Date(form.startDate).toISOString();
+          ? new Date(`${form.startDate}T${form.startTime}:00`)
+          : new Date(form.startDate);
 
       const endDateTime =
         form.endDate && form.endTime
-          ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString()
-          : new Date(form.endDate).toISOString();
+          ? new Date(`${form.endDate}T${form.endTime}:00`)
+          : new Date(form.endDate);
 
-      const payload = {
-        id: editEvent?.id,
-        title: form.title,
-        description: form.description || null,
-        startDate: startDateTime,
-        endDate: endDateTime,
-        locationDetail: form.locationDetail || null,
-        cityId: parseInt(form.cityId),
-        eventCategoryId: parseInt(form.eventCategoryId),
-        eventTypeId: parseInt(form.eventTypeId),
-        isPrivate: form.isPrivate,
-        maxCapacity: parseInt(form.maxCapacity),
-        imageUrl: imagePreview,
-      };
+      if (endDateTime <= startDateTime) {
+        toast.error("La fecha de fin debe ser posterior a la fecha de inicio");
+        setLoading(false);
+        return;
+      }
 
       const isEditing = !!editEvent;
+      const payload = isEditing
+        ? {
+            id: editEvent!.id,
+            title: form.title,
+            description: form.description || null,
+            startDate: startDateTime.toISOString(),
+            endDate: endDateTime.toISOString(),
+            locationDetail: form.locationDetail || null,
+            cityId: cityId,
+            eventCategoryId: eventCategoryId,
+            eventTypeId: eventTypeId,
+            isPrivate: form.isPrivate,
+            maxCapacity: maxCapacity,
+            imageUrl: imagePreview,
+          }
+        : {
+            title: form.title,
+            description: form.description || null,
+            startDate: startDateTime.toISOString(),
+            endDate: endDateTime.toISOString(),
+            locationDetail: form.locationDetail || null,
+            cityId: cityId,
+            eventCategoryId: eventCategoryId,
+            eventTypeId: eventTypeId,
+            isPrivate: form.isPrivate,
+            maxCapacity: maxCapacity,
+            imageUrl: imagePreview,
+          };
+
       const url = isEditing ? `/api/events/${editEvent!.id}` : "/api/events";
       const method = isEditing ? "PUT" : "POST";
 
@@ -334,13 +403,13 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
-              Nuevo evento
+              {editEvent ? "Editar evento" : "Nuevo evento"}
             </p>
             <h2 className="mt-1 text-2xl font-extrabold text-slate-900">
-              Crear evento
+              {editEvent ? "Editar evento" : "Crear evento"}
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Completa la información para publicar tu evento.
+              {editEvent ? "Modifica la información de tu evento." : "Completa la información para publicar tu evento."}
             </p>
           </div>
 
@@ -709,7 +778,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
               disabled={loading}
               className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-3 text-sm font-bold text-white transition hover:from-blue-500 hover:to-blue-700 disabled:opacity-60"
             >
-              {loading ? "Creando..." : "Crear evento"}
+              {loading ? (editEvent ? "Guardando..." : "Creando...") : (editEvent ? "Guardar cambios" : "Crear evento")}
             </button>
           </div>
         </form>

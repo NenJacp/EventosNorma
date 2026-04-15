@@ -1,3 +1,4 @@
+using EventosNorma.Application.Common.Helpers;
 using EventosNorma.Domain.Entities;
 using EventosNorma.Domain.Interfaces;
 using EventosNorma.Domain.Enums;
@@ -11,13 +12,18 @@ public class UpdateEventHandler
         var @event = await repository.GetByIdAsync(command.Id);
         if (@event == null) return false;
 
-        // Validar que solo el creador o un admin pueda editar
         if (@event.CreatedById != currentUserService.UserId && !currentUserService.IsAdmin)
         {
             throw new UnauthorizedAccessException("No tiene permiso para editar este evento.");
         }
 
-        @event.ChangeInfo(command.Title, command.Description, command.LocationDetail, command.StartDate, command.EndDate);
+        string? newSlug = null;
+        if (!string.IsNullOrWhiteSpace(command.Title) && command.Title.Trim() != @event.Title)
+        {
+            newSlug = await SlugHelper.GenerateUniqueSlugAsync(command.Title, repository, @event.Id);
+        }
+        
+        @event.ChangeInfo(command.Title, command.Description, command.LocationDetail, command.StartDate, command.EndDate, newSlug);
         
         if (command.CityId.HasValue) @event.ChangeCity(command.CityId.Value);
         if (command.EventCategoryId.HasValue) @event.ChangeCategory(command.EventCategoryId.Value);

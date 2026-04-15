@@ -51,7 +51,7 @@ public class Event : IAuditableEntity
     private Event() { }
 
     // --- Fábrica (Factory) ---
-    public static Event Create(string title, string? description, DateTime startDate, DateTime endDate, string? locationDetail, int cityId, int eventCategoryId, int eventTypeId, bool isPrivate, int createdById, int maxCapacity, bool requiresApproval = false, string? imageUrl = null)
+    public static Event Create(string title, string? description, DateTime startDate, DateTime endDate, string? locationDetail, int cityId, int eventCategoryId, int eventTypeId, bool isPrivate, int createdById, int maxCapacity, bool requiresApproval = false, string? imageUrl = null, string? slug = null)
     {
         ValidateTitle(title);
         ValidateDates(startDate, endDate);
@@ -64,7 +64,7 @@ public class Event : IAuditableEntity
         return new Event
         {
             Title = title.Trim(),
-            Slug = GenerateSlug(title),
+            Slug = !string.IsNullOrWhiteSpace(slug) ? slug : GenerateSlug(title),
             Description = !string.IsNullOrWhiteSpace(description) ? description.Trim() : "Sin descripción",
             StartDate = startDate,
             EndDate = endDate,
@@ -146,7 +146,7 @@ public class Event : IAuditableEntity
         IsActive = true;
     }
 
-    public void ChangeInfo(string? title, string? description, string? locationDetail, DateTime? startDate, DateTime? endDate)
+    public void ChangeInfo(string? title, string? description, string? locationDetail, DateTime? startDate, DateTime? endDate, string? newSlug = null)
     {
         if (!string.IsNullOrWhiteSpace(title))
         {
@@ -155,6 +155,10 @@ public class Event : IAuditableEntity
             {
                 ValidateTitle(trimmedTitle);
                 Title = trimmedTitle;
+                if (!string.IsNullOrWhiteSpace(newSlug))
+                {
+                    Slug = newSlug;
+                }
             }
         }
 

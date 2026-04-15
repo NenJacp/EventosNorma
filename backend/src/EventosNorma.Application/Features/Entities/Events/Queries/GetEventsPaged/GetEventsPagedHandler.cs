@@ -68,6 +68,20 @@ public class GetEventsPagedHandler
             var isMember = e.Members.Any(m => m.UserId == userId && m.ExitedAt == null);
             var isCreator = e.CreatedById == userId;
             var showAccessCode = currentUserService.IsAdmin || isCreator || isMember || query.AccessCode == e.AccessCode;
+            
+            DateTime? joinedAt = null;
+            bool hasExited = false;
+            
+            if (query.JoinedByUserId.HasValue)
+            {
+                var member = e.Members.FirstOrDefault(m => m.UserId == userId);
+                if (member != null)
+                {
+                    joinedAt = member.JoinedAt;
+                    hasExited = member.ExitedAt != null;
+                }
+            }
+            
             return new EventViewModel(
                 e.Id,
                 e.Title,
@@ -76,8 +90,15 @@ public class GetEventsPagedHandler
                 e.StartDate,
                 e.EndDate,
                 e.LocationDetail,
+                e.CityId,
                 e.City.Name,
+                e.City.StateId,
+                e.City.State.Name,
+                e.City.State.CountryId,
+                e.City.State.Country.Name,
+                e.EventCategoryId,
                 e.EventCategory.Name,
+                e.EventTypeId,
                 e.EventType.Name,
                 $"{e.Creator.FirstName} {e.Creator.LastName}",
                 e.Status,
@@ -88,7 +109,10 @@ public class GetEventsPagedHandler
                 e.IsActive,
                 e.ImageUrl,
                 isCreator,
-                isMember);
+                isMember,
+                false,
+                joinedAt,
+                hasExited);
         });
 
         return new PagedList<EventViewModel>(
