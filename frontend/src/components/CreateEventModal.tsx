@@ -67,6 +67,29 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
     if (isOpen) {
       loadCatalogs();
       document.body.style.overflow = "hidden";
+      
+      if (!editEvent) {
+        setForm({
+          title: "",
+          description: "",
+          startDate: "",
+          startTime: "",
+          endDate: "",
+          endTime: "",
+          locationDetail: "",
+          cityId: "",
+          eventCategoryId: "",
+          eventTypeId: "",
+          maxCapacity: "",
+          isPrivate: false,
+        });
+        setSelectedCountry("");
+        setSelectedState("");
+        setStates([]);
+        setCities([]);
+        setImagePreview(null);
+        setCreatedEvent(null);
+      }
     } else {
       document.body.style.overflow = "";
     }
@@ -74,7 +97,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen]);
+  }, [isOpen, editEvent]);
 
   useEffect(() => {
     if (editEvent) {
@@ -334,6 +357,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
   const handleClose = () => {
     if (createdEvent) {
       onSuccess();
+      setCreatedEvent(null);
     }
     onClose();
   };

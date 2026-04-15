@@ -56,6 +56,8 @@ export interface SubscriptionViewModel {
   hasExited: boolean;
   isFull: boolean;
   availableSlots: number;
+  imageUrl?: string;
+  displayImageUrl: string;
 }
 
 export interface PagedList<T> {

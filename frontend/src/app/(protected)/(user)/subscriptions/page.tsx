@@ -30,9 +30,11 @@ interface ApiSubscriptionResponse {
   hasExited: boolean;
   isFull: boolean;
   availableSlots: number;
+  imageUrl?: string;
 }
 
 function mapApiToSubscription(apiItem: ApiSubscriptionResponse) {
+  const imageUrl = apiItem.imageUrl || null;
   return {
     eventId: apiItem.id,
     slug: apiItem.slug,
@@ -53,6 +55,8 @@ function mapApiToSubscription(apiItem: ApiSubscriptionResponse) {
     hasExited: apiItem.hasExited,
     isFull: apiItem.isFull,
     availableSlots: apiItem.availableSlots,
+    imageUrl: imageUrl,
+    displayImageUrl: imageUrl || "/defaults/event.png",
   };
 }
 
@@ -206,9 +210,17 @@ export default function SubscriptionsPage() {
                     <div key={event.eventId} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
                       <Link href={`/events/${event.slug}`}>
                         <div className="w-full h-36 overflow-hidden bg-slate-100">
-                          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                            <span className="text-4xl font-bold text-blue-300">{event.title[0]?.toUpperCase()}</span>
-                          </div>
+                          {event.imageUrl ? (
+                            <img
+                              src={event.imageUrl}
+                              alt={event.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                              <span className="text-4xl font-bold text-blue-300">{event.title[0]?.toUpperCase()}</span>
+                            </div>
+                          )}
                         </div>
                       </Link>
                       
