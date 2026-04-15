@@ -16,6 +16,12 @@ public class LoginHandler
             throw new UnauthorizedAccessException("El usuario no existe o está inactivo.");
         }
 
+        if (user.IsBanned)
+        {
+            var reason = user.BanReason ?? "Razón no especificada";
+            throw new UnauthorizedAccessException($"Usuario baneado. Razón: {reason}");
+        }
+
         if (!user.EmailVerified)
         {
             throw new UnauthorizedAccessException("Debes verificar tu correo electrónico antes de iniciar sesión.");

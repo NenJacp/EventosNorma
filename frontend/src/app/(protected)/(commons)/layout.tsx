@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu, X, Shield } from "lucide-react";
+import { Menu, X, Shield, LayoutGrid, Calendar, Heart, Users, FolderOpen, List, MapPin, Tag, Grid, User, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { User, LogOut } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 interface SidebarUser {
@@ -15,6 +14,29 @@ interface SidebarUser {
   profileImage?: string;
 }
 
+const adminMenuItems = [
+  { section: "PANEL", items: [
+    { href: "/dashboard", label: "Dashboard", icon: Shield },
+  ]},
+  { section: "GESTIÓN", items: [
+    { href: "/all-events", label: "Eventos", icon: Calendar },
+    { href: "/users", label: "Usuarios", icon: Users },
+    { href: "/catalog/countries", label: "Países", icon: MapPin },
+    { href: "/catalog/states", label: "Estados", icon: List },
+    { href: "/catalog/cities", label: "Ciudades", icon: Grid },
+    { href: "/catalog/event-types", label: "Tipos de Evento", icon: Tag },
+    { href: "/catalog/event-categories", label: "Categorías", icon: FolderOpen },
+  ]},
+];
+
+const userMenuItems = [
+  { section: "NAVEGACIÓN", items: [
+    { href: "/home", label: "Inicio", icon: LayoutGrid },
+    { href: "/my-events", label: "Mis Eventos", icon: Calendar },
+    { href: "/subscriptions", label: "Subscripciones", icon: Heart },
+  ]},
+];
+
 export default function CommonsLayout({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
@@ -22,8 +44,10 @@ export default function CommonsLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
   const [user, setUser] = useState<SidebarUser | null>(null);
   const [loadingLogout, setLoadingLogout] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const fetchUser = async () => {
       try {
         const res = await apiFetch<SidebarUser>("/api/Users/currentUser");
@@ -51,6 +75,18 @@ export default function CommonsLayout({ children }: { children: React.ReactNode 
   const fullName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || userEmail || "Usuario";
   const initials = (user?.firstName?.[0]?.toUpperCase() || userEmail[0]?.toUpperCase() || "?") + (user?.lastName?.[0]?.toUpperCase() || "");
 
+  const menuSections = isAdmin ? adminMenuItems : userMenuItems;
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900 font-sans">
       <button onClick={() => setIsOpen(!isOpen)} className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-[#0f172a] text-white md:hidden shadow-md">
@@ -67,19 +103,26 @@ export default function CommonsLayout({ children }: { children: React.ReactNode 
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 space-y-6">
-          {isAdmin && (
-            <div>
-              <h3 className="px-6 mb-3 text-[11px] font-semibold text-amber-500 tracking-wider">ADMINISTRACIÓN</h3>
+          {menuSections.map((section) => (
+            <div key={section.section}>
+              <h3 className="px-6 mb-3 text-[11px] font-semibold text-amber-500 tracking-wider">{section.section}</h3>
               <ul className="space-y-1 px-3">
-                <li>
-                  <Link href="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 hover:text-white">
-                    <Shield size={18} className="text-amber-500" />
-                    <span className="text-sm font-medium text-amber-400">Panel Admin</span>
-                  </Link>
-                </li>
+                {section.items.map((item) => {
+                  const active = isActive(item.href);
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.href}>
+                      <Link href={item.href} onClick={() => setIsOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${active ? "bg-[#1e293b] text-white relative before:absolute before:left-[-12px] before:top-0 before:bottom-0 before:w-1 before:bg-blue-500" : "hover:bg-white/5 hover:text-white"}`}>
+                        <Icon size={18} className={active ? "text-slate-300" : "text-slate-500"} />
+                        <span className="text-sm font-medium">{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
-          )}
+          ))}
         </div>
 
         <div className="border-t border-white/5 p-4 bg-[#0b1121]">

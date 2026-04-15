@@ -10,6 +10,6 @@ public class GetCitiesHandler
     public async Task<IEnumerable<CityViewModel>> Handle(GetCitiesQuery query, ICityRepository repository)
     {
         var items = await repository.GetAllAsync();
-        return items.Select(c => new CityViewModel(c.Id, c.Name, c.Code, c.StateId, c.IsActive));
+        return items.Select(c => new CityViewModel(c.Id, c.Name, c.Code, c.StateId, c.State.Name, c.State.Country.Name, c.IsActive));
     }
 }

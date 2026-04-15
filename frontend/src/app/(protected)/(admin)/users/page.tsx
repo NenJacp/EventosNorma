@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Users, Shield, Search, Ban, CheckCircle, X } from "lucide-react";
+import { Users, Shield, Search, Ban, CheckCircle, X, Unlock } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 interface UserItem {
   id: number;
@@ -26,6 +27,7 @@ export default function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
   const [banReason, setBanReason] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [unbanUser, setUnbanUser] = useState<UserItem | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -71,14 +73,21 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleUnban = async (userId: number) => {
+  const handleUnban = async () => {
+    if (!unbanUser) return;
+    setProcessing(true);
     try {
-      await apiFetch(`/api/Users/${userId}/unban`, {
+      await apiFetch(`/api/Users/${unbanUser.id}/unban`, {
         method: "POST",
       });
+      toast.success(`${unbanUser.firstName} ${unbanUser.lastName} ha sido desbaneado.`);
+      setUnbanUser(null);
       fetchUsers();
     } catch (err) {
       console.error("Error unbanning user:", err);
+      toast.error("No se pudo desbanear al usuario.");
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -230,11 +239,11 @@ export default function AdminUsersPage() {
                         {user.role !== "Admin" && (
                           user.isBanned ? (
                             <button
-                              onClick={() => handleUnban(user.id)}
+                              onClick={() => setUnbanUser(user)}
                               className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                               title="Desbanear"
                             >
-                              <CheckCircle size={18} />
+                              <Unlock size={18} />
                             </button>
                           ) : (
                             <button
@@ -315,6 +324,62 @@ export default function AdminUsersPage() {
                     {processing ? "Baneando..." : "Banear Usuario"}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {unbanUser && (
+        <>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={() => setUnbanUser(null)} />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <Unlock className="text-green-500" size={20} />
+                  Desbanear Usuario
+                </h2>
+                <button
+                  onClick={() => setUnbanUser(null)}
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-semibold text-sm">
+                    {unbanUser.firstName[0]}{unbanUser.lastName[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {unbanUser.firstName} {unbanUser.lastName}
+                    </p>
+                    <p className="text-xs text-slate-500">{unbanUser.email}</p>
+                  </div>
+                </div>
+
+                <p className="text-slate-600">
+                  ¿Estás seguro de que quieres desbloquear a este usuario?
+                </p>
+              </div>
+
+              <div className="flex gap-3 px-6 py-4 border-t border-slate-200">
+                <button
+                  onClick={() => setUnbanUser(null)}
+                  className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleUnban}
+                  disabled={processing}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                >
+                  {processing ? "Desbloqueando..." : "Desbloquear"}
+                </button>
               </div>
             </div>
           </div>

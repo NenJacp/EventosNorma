@@ -69,6 +69,7 @@ export default function EventCategoriesPage() {
       onUpdate={handleUpdate}
       onToggle={handleToggle}
       hasDescription
+      hasCode={false}
       emptyMessage="No hay categorías registradas"
     />
   );

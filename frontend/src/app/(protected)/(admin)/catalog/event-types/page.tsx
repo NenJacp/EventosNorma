@@ -69,6 +69,7 @@ export default function EventTypesPage() {
       onUpdate={handleUpdate}
       onToggle={handleToggle}
       hasDescription
+      hasCode={false}
       emptyMessage="No hay tipos de evento registrados"
     />
   );

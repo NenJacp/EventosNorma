@@ -9,6 +9,6 @@ public class GetCitiesByStateHandler
     public async Task<IEnumerable<CityViewModel>> Handle(GetCitiesByStateQuery query, ICityRepository repository)
     {
         var items = await repository.GetByStateIdAsync(query.StateId);
-        return items.Select(x => new CityViewModel(x.Id, x.Name, x.Code ?? string.Empty, x.StateId, x.IsActive));
+        return items.Select(x => new CityViewModel(x.Id, x.Name, x.Code ?? string.Empty, x.StateId, x.State.Name, x.State.Country.Name, x.IsActive));
     }
 }

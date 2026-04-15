@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Calendar, MapPin, Users, Lock, XCircle, Search } from "lucide-react";
+import { Calendar, MapPin, Users, Lock, XCircle, Search, X, Ban, Trash2 } from "lucide-react";
 import Pagination from "@/components/Pagination";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 interface EventItem {
   id: number;
@@ -13,6 +14,7 @@ interface EventItem {
   status: string;
   isPrivate: boolean;
   startDate: string;
+  endDate: string;
   cityName: string;
   creatorName: string;
   currentCapacity: number;
@@ -34,6 +36,9 @@ export default function AdminEventsPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [deletingEvent, setDeletingEvent] = useState<EventItem | null>(null);
+  const [cancellingEvent, setCancellingEvent] = useState<EventItem | null>(null);
+  const [processing, setProcessing] = useState(false);
 
   const fetchEvents = async (page: number) => {
     setLoading(true);
@@ -81,7 +86,47 @@ export default function AdminEventsPage() {
       day: "numeric",
       month: "short",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
+  };
+
+  const handleDelete = async () => {
+    if (!deletingEvent) return;
+    setProcessing(true);
+    try {
+      await apiFetch(`/api/events/${deletingEvent.id}`, { method: "DELETE" });
+      toast.success("Evento eliminado correctamente");
+      setDeletingEvent(null);
+      fetchEvents(currentPage);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("No se pudo eliminar el evento");
+      }
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!cancellingEvent) return;
+    setProcessing(true);
+    try {
+      await apiFetch(`/api/events/${cancellingEvent.id}/cancel`, { method: "POST" });
+      toast.success("Evento cancelado correctamente");
+      setCancellingEvent(null);
+      fetchEvents(currentPage);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("No se pudo cancelar el evento");
+      }
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (
@@ -138,10 +183,11 @@ export default function AdminEventsPage() {
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Evento</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Estatus</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Capacidad</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Creador</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -171,6 +217,11 @@ export default function AdminEventsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${event.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                            {event.isActive ? "Activo" : "Inactivo"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
                           <p className="text-sm text-slate-700">{formatDate(event.startDate)}</p>
                         </td>
                         <td className="px-6 py-4">
@@ -183,6 +234,26 @@ export default function AdminEventsPage() {
                         </td>
                         <td className="px-6 py-4">
                           <p className="text-sm text-slate-700">{event.creatorName}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                                  <div className="flex items-center justify-end gap-2">
+                            {event.status !== "Cancelled" && (
+                              <button
+                                onClick={() => setCancellingEvent(event)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Cancelar evento"
+                              >
+                                <XCircle size={18} />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setDeletingEvent(event)}
+                              className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                              title="Eliminar evento"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -198,6 +269,73 @@ export default function AdminEventsPage() {
               totalPages={totalPages}
               onPageChange={handlePageChange}
             />
+          </div>
+        </>
+      )}
+
+      {deletingEvent && (
+        <>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={() => setDeletingEvent(null)} />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <Trash2 className="text-red-500" size={20} />
+                  Eliminar Evento
+                </h2>
+                <button onClick={() => setDeletingEvent(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6">
+                <p className="text-slate-600 mb-2">
+                  ¿Estás seguro de que quieres eliminar el evento <strong>"{deletingEvent.title}"</strong>?
+                </p>
+                <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                  Esta acción no se puede deshacer.
+                </p>
+              </div>
+              <div className="flex gap-3 px-6 py-4 border-t border-slate-200">
+                <button onClick={() => setDeletingEvent(null)} className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+                  Cancelar
+                </button>
+                <button onClick={handleDelete} disabled={processing} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50">
+                  {processing ? "Eliminando..." : "Eliminar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {cancellingEvent && (
+        <>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={() => setCancellingEvent(null)} />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <XCircle className="text-red-500" size={20} />
+                  Cancelar Evento
+                </h2>
+                <button onClick={() => setCancellingEvent(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6">
+                <p className="text-slate-600">
+                  ¿Estás seguro de que quieres cancelar el evento <strong>"{cancellingEvent.title}"</strong>?
+                </p>
+              </div>
+              <div className="flex gap-3 px-6 py-4 border-t border-slate-200">
+                <button onClick={() => setCancellingEvent(null)} className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+                  Cancelar
+                </button>
+                <button onClick={handleCancel} disabled={processing} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50">
+                  {processing ? "Cancelando..." : "Cancelar Evento"}
+                </button>
+              </div>
+            </div>
           </div>
         </>
       )}

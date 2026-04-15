@@ -10,6 +10,6 @@ public class GetStatesByCountryHandler
     public async Task<IEnumerable<StateViewModel>> Handle(GetStatesByCountryQuery query, IStateRepository repository)
     {
         var items = await repository.GetByCountryIdAsync(query.CountryId);
-        return items.Select(x => new StateViewModel(x.Id, x.Name, x.Code ?? string.Empty, x.CountryId, x.IsActive));
+        return items.Select(x => new StateViewModel(x.Id, x.Name, x.Code ?? string.Empty, x.CountryId, x.Country.Name, x.IsActive));
     }
 }

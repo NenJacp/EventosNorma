@@ -34,10 +34,11 @@ interface AdminSidebarProps {
 
 const adminMenuSections = [
   {
-    title: "PANEL",
+    title: "GESTIÓN",
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/all-events", label: "Eventos", icon: Calendar },
+      { href: "/users", label: "Usuarios", icon: Users },
     ],
   },
   {
@@ -48,12 +49,6 @@ const adminMenuSections = [
       { href: "/catalog/cities", label: "Ciudades", icon: MapPin },
       { href: "/catalog/event-types", label: "Tipos de Evento", icon: Tag },
       { href: "/catalog/event-categories", label: "Categorías", icon: List },
-    ],
-  },
-  {
-    title: "USUARIOS",
-    items: [
-      { href: "/users", label: "Usuarios", icon: Users },
     ],
   },
 ];

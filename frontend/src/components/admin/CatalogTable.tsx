@@ -27,6 +27,7 @@ interface CatalogTableProps<T extends CatalogItem> {
   parentLabel?: string;
   parentOptions?: { id: number; name: string }[];
   hasDescription?: boolean;
+  hasCode?: boolean;
   emptyMessage: string;
 }
 
@@ -42,6 +43,7 @@ export default function CatalogTable<T extends CatalogItem>({
   parentLabel,
   parentOptions,
   hasDescription = false,
+  hasCode = true,
   emptyMessage,
 }: CatalogTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,6 +58,7 @@ export default function CatalogTable<T extends CatalogItem>({
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; parentId?: string }>({});
   const [confirmingDeactivate, setConfirmingDeactivate] = useState<{ id: number; name: string } | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
 
@@ -72,6 +75,7 @@ export default function CatalogTable<T extends CatalogItem>({
     setEditingItem(null);
     setFormData({ name: "", code: "", description: "", parentId: "" });
     setError("");
+    setFieldErrors({});
     setIsModalOpen(true);
   };
 
@@ -84,6 +88,7 @@ export default function CatalogTable<T extends CatalogItem>({
       parentId: item.parentId?.toString() || "",
     });
     setError("");
+    setFieldErrors({});
     setIsModalOpen(true);
   };
 
@@ -91,13 +96,32 @@ export default function CatalogTable<T extends CatalogItem>({
     e.preventDefault();
     setSaving(true);
     setError("");
+    setFieldErrors({});
+
+    const errors: { name?: string; parentId?: string } = {};
+
+    if (!formData.name.trim()) {
+      errors.name = "El nombre es obligatorio.";
+    } else if (formData.name.trim().length < 2) {
+      errors.name = "El nombre debe tener al menos 2 caracteres.";
+    }
+
+    if (parentLabel && !formData.parentId) {
+      errors.parentId = `Seleccionar ${parentLabel} es obligatorio.`;
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setSaving(false);
+      return;
+    }
 
     try {
       const data: Record<string, string | number> = {
-        name: formData.name,
+        name: formData.name.trim(),
       };
 
-      if (formData.code) data.code = formData.code;
+      if (hasCode && formData.code) data.code = formData.code;
       if (hasDescription && formData.description) {
         data.description = formData.description;
       }
@@ -317,23 +341,28 @@ export default function CatalogTable<T extends CatalogItem>({
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${fieldErrors.name ? "border-red-500 bg-red-50" : "border-slate-300"}`}
                     placeholder="Nombre del elemento"
                   />
+                  {fieldErrors.name && (
+                    <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Código
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono"
-                    placeholder="Código (opcional)"
-                  />
-                </div>
+                {hasCode && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Código
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.code}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono"
+                      placeholder="Código (opcional)"
+                    />
+                  </div>
+                )}
 
                 {hasDescription && (
                   <div>
@@ -359,7 +388,7 @@ export default function CatalogTable<T extends CatalogItem>({
                       required
                       value={formData.parentId}
                       onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${fieldErrors.parentId ? "border-red-500 bg-red-50" : "border-slate-300"}`}
                     >
                       <option value="">Seleccionar {parentLabel}</option>
                       {parentOptions.map((opt) => (
@@ -368,6 +397,9 @@ export default function CatalogTable<T extends CatalogItem>({
                         </option>
                       ))}
                     </select>
+                    {fieldErrors.parentId && (
+                      <p className="text-red-500 text-xs mt-1">{fieldErrors.parentId}</p>
+                    )}
                   </div>
                 )}
 

@@ -10,6 +10,6 @@ public class GetStatesHandler
     public async Task<IEnumerable<StateViewModel>> Handle(GetStatesQuery query, IStateRepository repository)
     {
         var items = await repository.GetAllAsync();
-        return items.Select(s => new StateViewModel(s.Id, s.Name, s.Code, s.CountryId, s.IsActive));
+        return items.Select(s => new StateViewModel(s.Id, s.Name, s.Code, s.CountryId, s.Country.Name, s.IsActive));
     }
 }

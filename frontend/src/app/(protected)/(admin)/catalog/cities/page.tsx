@@ -19,8 +19,10 @@ interface StateOption {
   name: string;
 }
 
+type TableItem = CityItem & { parentName: string };
+
 export default function CitiesPage() {
-  const [items, setItems] = useState<CityItem[]>([]);
+  const [items, setItems] = useState<TableItem[]>([]);
   const [states, setStates] = useState<StateOption[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +33,7 @@ export default function CitiesPage() {
         apiFetch<CityItem[]>("/api/Catalogs/cities?includeInactive=true"),
         apiFetch<StateOption[]>("/api/Catalogs/states"),
       ]);
-      setItems(citiesData);
+      setItems(citiesData.map(c => ({ ...c, parentName: c.stateName })));
       setStates(statesData);
     } catch (err) {
       console.error("Error fetching cities:", err);
