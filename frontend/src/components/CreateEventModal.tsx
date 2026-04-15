@@ -318,7 +318,11 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
           toast.success(data.message || "Evento creado correctamente");
         }
       } else {
-        toast.error(data.message || `Error al ${isEditing ? "actualizar" : "crear"} evento`);
+        if (data.errors && data.errors.length > 0) {
+          data.errors.forEach((error: string) => toast.error(error));
+        } else {
+          toast.error(data.message || `Error al ${isEditing ? "actualizar" : "crear"} evento`);
+        }
       }
     } catch (err: any) {
       toast.error(err.message || `Error al ${editEvent ? "actualizar" : "crear"} evento`);
@@ -480,9 +484,18 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, title: e.target.value }))
                   }
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100"
+                  className={`w-full rounded-2xl border px-4 py-3 text-sm text-slate-800 outline-none transition focus:ring-4 disabled:bg-slate-100 ${
+                    form.title && form.title.length < 5
+                      ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-100"
+                      : "border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-blue-100"
+                  }`}
                   placeholder="Nombre de tu evento"
                 />
+                {form.title && form.title.length < 5 && (
+                  <p className="mt-1 text-xs text-red-500">
+                    Mínimo 5 caracteres ({form.title.length}/5)
+                  </p>
+                )}
               </div>
 
               <div>
@@ -736,9 +749,18 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, editEvent
                         maxCapacity: e.target.value,
                       }))
                     }
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition focus:ring-4 disabled:bg-slate-100 ${
+                      form.maxCapacity && (parseInt(form.maxCapacity) <= 0 || isNaN(parseInt(form.maxCapacity)))
+                        ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-100"
+                        : "border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-blue-100"
+                    }`}
                     placeholder="Ej: 100"
                   />
+                  {form.maxCapacity && (parseInt(form.maxCapacity) <= 0 || isNaN(parseInt(form.maxCapacity))) && (
+                    <p className="mt-1 text-xs text-red-500">
+                      La capacidad debe ser mayor a 0
+                    </p>
+                  )}
                 </div>
 
                 <button
