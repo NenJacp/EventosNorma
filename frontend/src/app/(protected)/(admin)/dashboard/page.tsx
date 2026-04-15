@@ -17,6 +17,7 @@ interface DashboardStats {
 interface RecentEvent {
   id: number;
   title: string;
+  slug: string;
   status: string;
   createdAt: string;
   creatorName: string;
@@ -129,7 +130,7 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
             <h2 className="font-semibold text-slate-900">Eventos recientes</h2>
-            <Link href="/admin/events" className="text-sm text-blue-600 hover:text-blue-700">
+            <Link href="/all-events" className="text-sm text-blue-600 hover:text-blue-700">
               Ver todos
             </Link>
           </div>
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
               recentEvents.map((event) => (
                 <Link
                   key={event.id}
-                  href={`/admin/events/${event.id}`}
+                  href={`/events/${event.slug}`}
                   className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
