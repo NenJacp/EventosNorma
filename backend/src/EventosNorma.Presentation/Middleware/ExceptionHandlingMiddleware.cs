@@ -62,6 +62,12 @@ public class ExceptionHandlingMiddleware
             message = exception.Message;
             errors.Add(exception.Message);
         }
+        else if (exception is EventosNorma.Application.Exceptions.BannedUserException bannedEx)
+        {
+            code = HttpStatusCode.Forbidden;
+            message = bannedEx.Message;
+            errors.Add(bannedEx.BanReason);
+        }
         else if (_env.IsDevelopment())
         {
             message = exception.Message;

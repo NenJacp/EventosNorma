@@ -65,7 +65,9 @@ export default function LoginPage() {
       if (err instanceof ApiError) {
         const normalizedMessage = err.message.toLowerCase();
 
-        if (
+        if (err.status === 403 && normalizedMessage.includes("baneado")) {
+          toast.error(err.message);
+        } else if (
           err.status === 401 &&
           normalizedMessage.includes("verificar tu correo")
         ) {

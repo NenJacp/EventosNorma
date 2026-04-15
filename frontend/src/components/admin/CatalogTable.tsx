@@ -227,7 +227,9 @@ export default function CatalogTable<T extends CatalogItem>({
                   {hasDescription && (
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción</th>
                   )}
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Código</th>
+                  {hasCode && (
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Código</th>
+                  )}
                   {parentLabel && (
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{parentLabel}</th>
                   )}
@@ -248,11 +250,13 @@ export default function CatalogTable<T extends CatalogItem>({
                         </p>
                       </td>
                     )}
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-500 font-mono">
-                        {item.code || "-"}
-                      </span>
-                    </td>
+                    {hasCode && (
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-slate-500 font-mono">
+                          {item.code || "-"}
+                        </span>
+                      </td>
+                    )}
                     {parentLabel && (
                       <td className="px-6 py-4">
                         <span className="text-sm text-slate-600">

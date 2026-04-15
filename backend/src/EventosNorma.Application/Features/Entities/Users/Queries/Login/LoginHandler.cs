@@ -1,3 +1,4 @@
+using EventosNorma.Application.Exceptions;
 using EventosNorma.Application.Features.Entities.Users.Queries;
 using EventosNorma.Application.Features.Entities.Users.ViewModels;
 using EventosNorma.Domain.Interfaces;
@@ -19,7 +20,7 @@ public class LoginHandler
         if (user.IsBanned)
         {
             var reason = user.BanReason ?? "Razón no especificada";
-            throw new UnauthorizedAccessException($"Usuario baneado. Razón: {reason}");
+            throw new Exceptions.BannedUserException(reason);
         }
 
         if (!user.EmailVerified)

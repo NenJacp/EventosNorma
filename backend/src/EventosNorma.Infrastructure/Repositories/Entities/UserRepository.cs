@@ -26,7 +26,7 @@ public class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _context.Users.Where(u => u.IsActive).ToListAsync();
+        return await _context.Users.ToListAsync();
     }
 
     public async Task AddAsync(User user)
